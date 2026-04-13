@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[46608,["/_next/static/chunks/0yk~7_ogla1g7.js","/_next/static/chunks/0ujy6-~qh3rio.js"],"ViewportBoundary"]
+3:I[46608,["/_next/static/chunks/0yk~7_ogla1g7.js","/_next/static/chunks/0ujy6-~qh3rio.js"],"MetadataBoundary"]
+4:"$Sreact.suspense"
+5:I[91530,["/_next/static/chunks/0yk~7_ogla1g7.js","/_next/static/chunks/0ujy6-~qh3rio.js"],"IconMark"]
+0:{"rsc":["$","$1","h",{"children":[["$","meta",null,{"name":"robots","content":"noindex"}],["$","$L2",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L3",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Go Chill Leva-te a Ibiza | Ganha 10.000€"}],["$","meta","1",{"name":"description","content":"Participa no passatempo Go Chill e habilita-te a ganhar uma viagem a Ibiza no valor de 10.000€ e prémios semanais!"}],["$","meta","2",{"name":"generator","content":"v0.app"}],["$","link","3",{"rel":"icon","href":"/images/logo.png"}],["$","link","4",{"rel":"apple-touch-icon","href":"/images/logo.png"}],["$","$L5","5",{}]]}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"5A9vfAb2Omf8ZpgWM5Ri9"}

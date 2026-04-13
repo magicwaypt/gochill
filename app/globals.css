@@ -125,84 +125,135 @@
   }
 }
 
-@keyframes gc-fade-up {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 18px, 0) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@keyframes gc-fade-left {
-  from {
-    opacity: 0;
-    transform: translate3d(18px, 0, 0) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@keyframes gc-fade-right {
-  from {
-    opacity: 0;
-    transform: translate3d(-18px, 0, 0) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
 @layer utilities {
-  .gc-animate-in {
-    animation-duration: 700ms;
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-    animation-fill-mode: both;
-    will-change: transform, opacity;
+  /* Hero Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  .gc-fade-up {
-    animation-name: gc-fade-up;
-  }
-  .gc-fade-left {
-    animation-name: gc-fade-left;
-  }
-  .gc-fade-right {
-    animation-name: gc-fade-right;
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
-  .gc-delay-0 {
-    animation-delay: 0ms;
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
-  .gc-delay-1 {
-    animation-delay: 120ms;
-  }
-  .gc-delay-2 {
-    animation-delay: 240ms;
-  }
-  .gc-delay-3 {
-    animation-delay: 360ms;
-  }
-  .gc-delay-4 {
-    animation-delay: 480ms;
-  }
-  .gc-delay-5 {
-    animation-delay: 600ms;
-  }
-  .gc-delay-6 {
-    animation-delay: 720ms;
-  }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .gc-animate-in {
-    animation: none !important;
-    transform: none !important;
-    opacity: 1 !important;
+  @keyframes floatPlane {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Animation Classes */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+
+  .animate-slide-in-left {
+    animation: slideInLeft 0.8s ease-out forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.8s ease-out forwards;
+  }
+
+  .animate-float-plane {
+    animation: floatPlane 3s ease-in-out infinite;
+  }
+
+  /* Airplane combined entry + float animation */
+  @keyframes airplaneEntry {
+    0% {
+      opacity: 0;
+      transform: translateX(-50px) translateY(0);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0) translateY(0);
+    }
+  }
+
+  .animate-airplane {
+    animation: airplaneEntry 0.8s ease-out 0.3s forwards, floatPlane 3s ease-in-out 1.1s infinite;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.8s ease-out forwards;
+  }
+
+  /* Staggered Delays */
+  .animation-delay-100 { animation-delay: 0.1s; }
+  .animation-delay-200 { animation-delay: 0.2s; }
+  .animation-delay-300 { animation-delay: 0.3s; }
+  .animation-delay-400 { animation-delay: 0.4s; }
+  .animation-delay-500 { animation-delay: 0.5s; }
+  .animation-delay-600 { animation-delay: 0.6s; }
+  .animation-delay-700 { animation-delay: 0.7s; }
+  .animation-delay-800 { animation-delay: 0.8s; }
+
+  /* Step Card - Default state */
+  .step-card-default {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Camera Flash Animation */
+  @keyframes cameraFlash {
+    0% {
+      background: radial-gradient(circle, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0) 100%);
+    }
+    5% {
+      background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0) 100%);
+    }
+    15% {
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0) 100%);
+    }
+    25% {
+      background: radial-gradient(circle, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0) 100%);
+    }
+    100% {
+      background: radial-gradient(circle, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0) 100%);
+    }
+  }
+
+  .animate-camera-flash {
+    border-radius: 50%;
+    animation: cameraFlash 2s ease-out infinite;
   }
 }
