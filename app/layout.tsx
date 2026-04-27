@@ -16,7 +16,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: 'Go Chill Leva-te a Ibiza | Ganha 10.000€',
+  title: 'Go Chill Leva-te a Ibiza',
   description: 'Participa no passatempo Go Chill e habilita-te a ganhar uma viagem a Ibiza no valor de 10.000€ e prémios semanais!',
   generator: 'v0.app',
   icons: {

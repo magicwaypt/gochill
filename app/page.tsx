@@ -103,6 +103,13 @@ export default function GoChillLandingPage() {
                 {/* RIGHT Column - Products + Avião + Valor */}
                 <div className="flex flex-col items-center">
                   <Image
+                    src="/images/valor.png"
+                    alt="10.000€"
+                    width={300}
+                    height={100}
+                    className="w-28 md:w-40 lg:w-52 mb-2 md:mb-4 animate-fade-in-up animation-delay-500"
+                  />
+                  <Image
                     src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/titulo-mNQdTWfiTV1Ff452lf2di82hjfMu77.png"
                     alt="Na compra de 2 Go Chill"
                     width={240}
@@ -122,23 +129,9 @@ export default function GoChillLandingPage() {
                       alt="Go Chill Choco Latte"
                       width={180}
                       height={280}
-                      className="w-20 md:w-32 lg:w-40 drop-shadow-2xl -ml-6 md:-ml-10"
+                      className="w-24 md:w-36 lg:w-44 drop-shadow-2xl -ml-6 md:-ml-10"
                     />
                   </div>
-                  <Image
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/valor-Qwj08KNxs659GCud4EHLkTsn3P50sM.png"
-                    alt="10.000€"
-                    width={300}
-                    height={100}
-                    className="w-28 md:w-40 lg:w-52 animate-fade-in-up animation-delay-500"
-                  />
-                  <Image
-                    src="/images/premios.png"
-                    alt="Premios"
-                    width={300}
-                    height={100}
-                    className="w-28 md:w-40 lg:w-52 mt-2 animate-fade-in-up animation-delay-600"
-                  />
                 </div>
               </div>
             </div>
@@ -160,37 +153,100 @@ export default function GoChillLandingPage() {
       {/* How to Participate */}
       <StepsSection />
 
-      {/* Form Section with Prizes */}
-      <section id="form-section" className="py-12 md:py-16 bg-[#f8f5f2]" style={{backgroundImage: "url('/images/foto.png')", backgroundSize: 'cover', backgroundPosition: 'center'}}>
+      <section
+        className="relative overflow-hidden py-12 md:py-16"
+        style={{
+          backgroundImage: "url('/images/image.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center bottom'
+        }}
+      >
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto items-center">
-            
-            {/* Left - Prizes */}
-            <div className="flex flex-col items-center order-2 lg:order-1">
-              <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/premios-NSrh5wEDBq9rLAO6aMQa8C94gvNyJH.png"
-                alt="Prémios Semanais"
-                width={250}
-                height={80}
-                className="w-44 md:w-56 mb-4"
-              />
-              <div className="relative inline-block w-64 md:w-80 lg:w-96">
-                <Image
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/premios-vY837Hvf0LVKu8CfEHqzv4Jr6ux5SW.png"
-                  alt="Prémios - Instax, DCK Boardshorts, Toalhas"
-                  width={450}
-                  height={550}
-                  className="w-64 md:w-80 lg:w-96 drop-shadow-xl relative z-10"
-                />
-                <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-32 h-32 animate-camera-flash rounded-full z-20 pointer-events-none" />
-              </div>
-              <p className="text-[#3d2314] text-center mt-4 text-sm md:text-base max-w-md font-bold">
-                Todas as semanas, as fotografias mais divertidas ganham prémios Câmaras Instax, Boardshorts DCK e Toalhas de Praia!
-              </p>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 max-w-6xl mx-auto">
+            <Card className="border-0 bg-white/90 shadow-2xl backdrop-blur-sm">
+              <CardContent className="p-6 md:p-8">
+                <p className="text-sm font-bold tracking-[0.2em] text-[#c73d3d] mb-3">
+                  PRÉMIOS SEMANAIS
+                </p>
+                <h3 className="text-2xl md:text-3xl font-bold text-[#3d2314] mb-3">
+                  As 7 fotos mais criativas da semana ganham prémios
+                </h3>
+                <div className="grid grid-cols-3 gap-3 md:gap-4 mb-6 items-end">
+                  <div className="p-3 md:p-4">
+                    <Image
+                      src="/images/camara.png"
+                      alt="Câmara instantânea FUJIFILM Instax Mini"
+                      width={480}
+                      height={480}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                  <div className="p-3 md:p-4">
+                    <Image
+                      src="/images/calcoes.png"
+                      alt="Calções de banho DCK"
+                      width={480}
+                      height={480}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                  <div className="p-3 md:p-4">
+                    <Image
+                      src="/images/toalha.png"
+                      alt="Toalhas de Praia Go Chill"
+                      width={480}
+                      height={480}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                </div>
+                <ul className="space-y-3 text-[#5a4a40] text-sm md:text-base leading-relaxed">
+                  <li><span className="font-bold text-[#3d2314]">1º Classificado:</span> Câmara instantânea FUJIFILM Instax Mini</li>
+                  <li><span className="font-bold text-[#3d2314]">2.º e 3.º Classificado:</span> Calções de banho DCK</li>
+                  <li><span className="font-bold text-[#3d2314]">4.º a 7.º Classificado:</span> Toalhas de Praia Go Chill</li>
+                </ul>
+              </CardContent>
+            </Card>
 
-            {/* Right - Form */}
-            <div className="order-1 lg:order-2">
+            <div className="py-2 md:py-4">
+              <div className="p-6 md:p-8">
+                <p className="text-sm font-bold tracking-[0.2em] text-[#c73d3d] mb-3">
+                  PRÉMIO FINAL
+                </p>
+                <h3 className="text-2xl md:text-3xl font-bold text-[#3d2314] mb-3">
+                  Voucher de viagem para Ibiza
+                </h3>
+                <p className="text-[#5a4a40] mb-6 text-sm md:text-base">
+                  A foto mais original de todas leva-te numa viagem a Ibiza para 4 amigos.
+                </p>
+                <div className="overflow-hidden">
+                  <Image
+                    src="/images/voucher.png"
+                    alt="Voucher de viagem para Ibiza"
+                    width={1600}
+                    height={800}
+                    className="w-full h-auto"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Form Section */}
+      <section
+        id="form-section"
+        className="relative overflow-hidden py-12 md:py-16"
+        style={{
+          backgroundImage: "url('/images/foto.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        <div className="absolute inset-0 bg-white/75" />
+        <div className="container relative z-10 mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
               {submitted ? (
                 <Card className="bg-gradient-to-br from-[#3d2314] to-[#5a3a2a] border-0 shadow-2xl">
                   <CardContent className="p-8 text-center text-white">
@@ -200,6 +256,9 @@ export default function GoChillLandingPage() {
                     <h3 className="text-2xl font-bold mb-3">Participação Registada!</h3>
                     <p className="text-white/80">
                       A tua participação foi registada com sucesso. Boa sorte!
+                    </p>
+                    <p className="mt-3 font-bold text-white">
+                      Se fores um dos vencedores serás contactado por e-mail. Fica atento à tua caixa de entrada e ao spam.
                     </p>
                   </CardContent>
                 </Card>
@@ -391,11 +450,14 @@ export default function GoChillLandingPage() {
                       <p className="text-xs text-center text-[#8b7355]">
                         * Campos obrigatórios
                       </p>
+
+                      <p className="text-sm md:text-base font-bold text-center text-[#8b7355]">
+                        Passatempo válido de 4 de maio a 3 de junho de 2026
+                      </p>
                     </form>
                   </CardContent>
                 </Card>
               )}
-            </div>
           </div>
         </div>
       </section>
@@ -455,7 +517,7 @@ function StepsSection() {
   }, [])
 
   return (
-    <section ref={ref} className="py-12 md:py-16 bg-white -mt-8 md:-mt-20 lg:-mt-28 relative z-20">
+    <section ref={ref} className="py-12 md:py-16 bg-white -mt-16 md:-mt-28 lg:-mt-40 relative z-20">
       <div className="container mx-auto px-4">
         <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center text-[#3d2314] mb-10 md:mb-12">
           Como Participar?
@@ -465,15 +527,15 @@ function StepsSection() {
           <StepCard 
             number={1}
             icon={<ShoppingCart className="w-6 h-6 md:w-7 md:h-7" />}
-            title="Compra 2 Go Chill"
-            description="em qualquer variedade ou sabor."
+            title="Compra"
+            description="2 Go Chill de qualquer sabor."
             animationClass={isVisible ? "animate-scale-in animation-delay-100" : ""}
           />
           <StepCard 
             number={2}
             icon={<Camera className="w-6 h-6 md:w-7 md:h-7" />}
-            title="Tira uma foto"
-            description="divertida com o teu Go Chill."
+            title="Tira uma foto original"
+            description="A foto é tua, Go Chill é obrigatório estar, tu decides se apareces ou não."
             animationClass={isVisible ? "animate-scale-in animation-delay-300" : ""}
           />
           <StepCard 
@@ -487,7 +549,7 @@ function StepsSection() {
             number={4}
             icon={<Award className="w-6 h-6 md:w-7 md:h-7" />}
             title="Ganha Prémios!"
-            description="Habilita-te a ganhar a viagem a Ibiza e prémios semanais."
+            description="Sê original e habilita-te a ganhar a viagem a Ibiza e prémios semanais."
             animationClass={isVisible ? "animate-scale-in animation-delay-700" : ""}
           />
         </div>
