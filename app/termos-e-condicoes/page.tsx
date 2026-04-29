@@ -16,7 +16,7 @@ export default function TermosECondicoesPage() {
         </div>
 
         <div className="mt-6">
-          <Link href="/" className="text-[#f47920] hover:underline font-medium">
+          <Link href="/passatempogochill2026" className="text-[#f47920] hover:underline font-medium">
             Voltar à página inicial
           </Link>
         </div>
