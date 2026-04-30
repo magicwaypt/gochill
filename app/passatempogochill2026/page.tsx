@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,8 +19,9 @@ export default function GoChillLandingPage() {
   const [uploadedTalon, setUploadedTalon] = useState<File | null>(null)
   const [uploadedFoto, setUploadedFoto] = useState<File | null>(null)
   const [talonError, setTalonError] = useState("")
-  const [aceiteRegulamento, setAceiteRegulamento] = useState(false)
   const [aceiteMaior18, setAceiteMaior18] = useState(false)
+  const [aceiteTermos, setAceiteTermos] = useState(false)
+  const [aceitePrivacidade, setAceitePrivacidade] = useState(false)
   const [aceiteMarketing, setAceiteMarketing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -73,7 +75,7 @@ export default function GoChillLandingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!aceiteRegulamento || !aceiteMaior18 || !aceiteMarketing || !uploadedTalon || !uploadedFoto) return
+    if (!aceiteMaior18 || !aceiteTermos || !aceitePrivacidade || !uploadedTalon || !uploadedFoto) return
 
     setIsSubmitting(true)
     await new Promise((resolve) => setTimeout(resolve, 1500))
@@ -444,23 +446,41 @@ export default function GoChillLandingPage() {
                             id="maior18"
                             checked={aceiteMaior18}
                             onCheckedChange={(checked) => setAceiteMaior18(checked === true)}
-                            className="mt-0.5 border-[#d4c4b0] data-[state=checked]:bg-[#3d2314] data-[state=checked]:border-[#3d2314]"
+                            className="mt-1 shrink-0 border-[#d4c4b0] data-[state=checked]:bg-[#3d2314] data-[state=checked]:border-[#3d2314]"
                           />
-                          <Label htmlFor="maior18" className="text-sm text-[#5a4a40] leading-tight cursor-pointer">
-                            Declaro que sou maior de 18 anos e que li e aceito o Regulamento do Passatempo. *
-                          </Label>
+                          <label htmlFor="maior18" className="text-sm text-[#5a4a40] leading-relaxed cursor-pointer">
+                            Declaro que sou maior de 18 anos e aceito o{" "}
+                            <Link href="/regulamento.pdf" target="_blank" rel="noopener noreferrer" className="underline text-[#3d2314] hover:text-black font-bold" onClick={(e) => e.stopPropagation()}>Regulamento do Passatempo</Link>
+                            . <span className="text-[#3d2314]">*</span>
+                          </label>
                         </div>
 
                         <div className="flex items-start space-x-3">
                           <Checkbox
-                            id="regulamento"
-                            checked={aceiteRegulamento}
-                            onCheckedChange={(checked) => setAceiteRegulamento(checked === true)}
-                            className="mt-0.5 border-[#d4c4b0] data-[state=checked]:bg-[#3d2314] data-[state=checked]:border-[#3d2314]"
+                            id="termos"
+                            checked={aceiteTermos}
+                            onCheckedChange={(checked) => setAceiteTermos(checked === true)}
+                            className="mt-1 shrink-0 border-[#d4c4b0] data-[state=checked]:bg-[#3d2314] data-[state=checked]:border-[#3d2314]"
                           />
-                          <Label htmlFor="regulamento" className="text-sm text-[#5a4a40] leading-tight cursor-pointer">
-                            Declaro ter lido a Política de Privacidade e ter tomado conhecimento da forma como os meus dados pessoais são tratados. *
-                          </Label>
+                          <label htmlFor="termos" className="text-sm text-[#5a4a40] leading-relaxed cursor-pointer">
+                            Declaro que li e aceito os{" "}
+                            <Link href="/termos_e_condicoes_de_utilizacao_do_site.pdf" target="_blank" rel="noopener noreferrer" className="underline text-[#3d2314] hover:text-black font-bold" onClick={(e) => e.stopPropagation()}>Termos de Utilização do Website</Link>
+                            . <span className="text-[#3d2314]">*</span>
+                          </label>
+                        </div>
+
+                        <div className="flex items-start space-x-3">
+                          <Checkbox
+                            id="privacidade"
+                            checked={aceitePrivacidade}
+                            onCheckedChange={(checked) => setAceitePrivacidade(checked === true)}
+                            className="mt-1 shrink-0 border-[#d4c4b0] data-[state=checked]:bg-[#3d2314] data-[state=checked]:border-[#3d2314]"
+                          />
+                          <label htmlFor="privacidade" className="text-sm text-[#5a4a40] leading-relaxed cursor-pointer">
+                            Declaro ter lido a{" "}
+                            <Link href="/politica_de_privacidade.pdf" target="_blank" rel="noopener noreferrer" className="underline text-[#3d2314] hover:text-black font-bold" onClick={(e) => e.stopPropagation()}>Política de Privacidade</Link>
+                            {" "}e ter tomado conhecimento da forma como os meus dados são tratados. <span className="text-[#3d2314]">*</span>
+                          </label>
                         </div>
 
                         <div className="flex items-start space-x-3">
@@ -468,17 +488,19 @@ export default function GoChillLandingPage() {
                             id="marketing"
                             checked={aceiteMarketing}
                             onCheckedChange={(checked) => setAceiteMarketing(checked === true)}
-                            className="mt-0.5 border-[#d4c4b0] data-[state=checked]:bg-[#3d2314] data-[state=checked]:border-[#3d2314]"
+                            className="mt-1 shrink-0 border-[#d4c4b0] data-[state=checked]:bg-[#3d2314] data-[state=checked]:border-[#3d2314]"
                           />
-                          <Label htmlFor="marketing" className="text-sm text-[#5a4a40] leading-tight cursor-pointer">
-                            Declaro que li e aceito os Termos e Condições de Utilização do Website. *
-                          </Label>
+                          <label htmlFor="marketing" className="text-sm text-[#5a4a40] leading-relaxed cursor-pointer">
+                            Consinto, de forma livre, consciente e informada, que Manuel Rui Azinhais Nabeiro, Unipessoal, Lda. recolha e trate os dados pessoais por mim fornecidos para ações de marketing e publicidade, nos termos melhor descritos na{" "}
+                            <Link href="/politica_de_privacidade.pdf" target="_blank" rel="noopener noreferrer" className="underline text-[#3d2314] hover:text-black font-bold" onClick={(e) => e.stopPropagation()}>Política de Privacidade</Link>
+                            .
+                          </label>
                         </div>
                       </div>
 
                       <Button
                         type="submit"
-                        disabled={!aceiteRegulamento || !aceiteMaior18 || !aceiteMarketing || !uploadedTalon || !uploadedFoto || isSubmitting}
+                        disabled={!aceiteMaior18 || !aceiteTermos || !aceitePrivacidade || !uploadedTalon || !uploadedFoto || isSubmitting}
                         className="w-full bg-[#c73d3d] hover:bg-[#a82f2f] text-white font-bold text-lg py-6 rounded-lg shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all"
                       >
                         {isSubmitting ? "A enviar..." : "PARTICIPAR"}
