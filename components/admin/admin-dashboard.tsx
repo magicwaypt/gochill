@@ -1,0 +1,341 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Eye, Download, Users, Image as ImageIcon, Calendar, Trophy, Award, Clock } from "lucide-react"
+
+interface Participation {
+  id: number
+  nome: string
+  email: string
+  telemovel: string
+  talaoBlob: string | null
+  fotoBlob: string | null
+  aceiteMaior18: boolean
+  aceiteTermos: boolean
+  aceitePrivacidade: boolean
+  aceiteMarketing: boolean
+  status: string
+  createdAt: string
+}
+
+export function AdminDashboard() {
+  const [participations, setParticipations] = useState<Participation[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [selectedParticipation, setSelectedParticipation] = useState<Participation | null>(null)
+  const [imageModalOpen, setImageModalOpen] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string>("")
+
+  useEffect(() => {
+    fetchParticipations()
+  }, [])
+
+  const fetchParticipations = async () => {
+    try {
+      const response = await fetch('/api/admin/participations')
+      if (response.ok) {
+        const data = await response.json()
+        setParticipations(data)
+      }
+    } catch (error) {
+      console.error('Error fetching participations:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filteredParticipations = participations.filter(participation => {
+    const matchesSearch = participation.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         participation.email.toLowerCase().includes(searchTerm.toLowerCase())
+    return matchesSearch
+  })
+
+  const totalParticipations = participations.length
+  const totalWithPhotos = participations.filter(p => p.fotoBlob && p.talaoBlob).length
+  const totalApproved = participations.filter(p => p.status === 'approved').length
+  const totalRejected = participations.filter(p => p.status === 'rejected').length
+  const totalPending = participations.filter(p => p.status === 'pending').length
+  const todayParticipations = participations.filter(p => {
+    const today = new Date().toDateString()
+    return new Date(p.createdAt).toDateString() === today
+  }).length
+
+  const openImageModal = (imageBlob: string) => {
+    setSelectedImage(imageBlob)
+    setImageModalOpen(true)
+  }
+
+  const updateParticipationStatus = async (id: number, status: string) => {
+    try {
+      const response = await fetch(`/api/admin/participations/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      })
+
+      if (response.ok) {
+        // Update local state
+        setParticipations(participations.map(p =>
+          p.id === id ? { ...p, status } : p
+        ))
+      } else {
+        alert('Erro ao atualizar status')
+      }
+    } catch (error) {
+      console.error('Error updating status:', error)
+      alert('Erro ao atualizar status')
+    }
+  }
+
+  const downloadImage = (imageBlob: string, filename: string) => {
+    const link = document.createElement('a')
+    link.href = `data:image/jpeg;base64,${imageBlob}`
+    link.download = filename
+    link.click()
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto mb-4"></div>
+          <p className="text-slate-600">A carregar participações...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Participações</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalParticipations}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Com Fotos Completas</CardTitle>
+            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalWithPhotos}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Hoje</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{todayParticipations}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Aprovadas</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{totalApproved}</div>
+            <p className="text-xs text-muted-foreground">
+              {totalParticipations > 0 ? Math.round((totalApproved / totalParticipations) * 100) : 0}% do total
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{totalPending}</div>
+            <p className="text-xs text-muted-foreground">
+              Aguardam validação
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Participações</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <Input
+                placeholder="Pesquisar por nome ou email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrar por status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="complete">Completas</SelectItem>
+                <SelectItem value="incomplete">Incompletas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Participations Table */}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Telemóvel</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Fotos</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredParticipations.map((participation) => (
+                  <TableRow key={participation.id}>
+                    <TableCell className="font-medium">#{participation.id}</TableCell>
+                    <TableCell>{participation.nome}</TableCell>
+                    <TableCell>{participation.email}</TableCell>
+                    <TableCell>{participation.telemovel}</TableCell>
+                    <TableCell>
+                      {new Date(participation.createdAt).toLocaleDateString('pt-PT')}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          participation.status === 'approved' ? 'default' :
+                          participation.status === 'rejected' ? 'destructive' :
+                          'secondary'
+                        }
+                      >
+                        {participation.status === 'approved' ? 'Aprovado' :
+                         participation.status === 'rejected' ? 'Rejeitado' :
+                         'Pendente'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        {participation.talaoBlob && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openImageModal(participation.talaoBlob!)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Talão
+                          </Button>
+                        )}
+                        {participation.fotoBlob && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openImageModal(participation.fotoBlob!)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Foto
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        {participation.status !== 'approved' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateParticipationStatus(participation.id, 'approved')}
+                            className="text-green-600 border-green-600 hover:bg-green-50"
+                          >
+                            ✓ Aprovar
+                          </Button>
+                        )}
+                        {participation.status !== 'rejected' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateParticipationStatus(participation.id, 'rejected')}
+                            className="text-red-600 border-red-600 hover:bg-red-50"
+                          >
+                            ✗ Rejeitar
+                          </Button>
+                        )}
+                        {participation.talaoBlob && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => downloadImage(participation.talaoBlob!, `talao_${participation.id}.jpg`)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {participation.fotoBlob && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => downloadImage(participation.fotoBlob!, `foto_${participation.id}.jpg`)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {filteredParticipations.length === 0 && (
+            <div className="text-center py-8 text-slate-500">
+              Nenhuma participação encontrada.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Image Modal */}
+      <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Visualizar Imagem</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center">
+            <img
+              src={`data:image/jpeg;base64,${selectedImage}`}
+              alt="Participation"
+              className="max-w-full max-h-[70vh] object-contain"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}

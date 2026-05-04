@@ -1,0 +1,99 @@
+{
+  "id": "93b9a2de-5f7d-4bac-967d-0f3837900875",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.participations": {
+      "name": "participations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "telemovel": {
+          "name": "telemovel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "talao_blob": {
+          "name": "talao_blob",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "foto_blob": {
+          "name": "foto_blob",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "aceite_maior_18": {
+          "name": "aceite_maior_18",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aceite_termos": {
+          "name": "aceite_termos",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aceite_privacidade": {
+          "name": "aceite_privacidade",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aceite_marketing": {
+          "name": "aceite_marketing",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Poppins, Montserrat } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { CookieBanner } from '@/components/cookie-banner'
+import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import './globals.css'
 
 const poppins = Poppins({ 
@@ -37,6 +38,7 @@ export default function RootLayout({
         {children}
         <CookieBanner />
         {process.env.NODE_ENV === 'production' && <Analytics />}
+        {process.env.NODE_ENV === 'production' && <GoogleAnalytics GA_MEASUREMENT_ID="G-5FPL43T0N2" />}
       </body>
     </html>
   )
