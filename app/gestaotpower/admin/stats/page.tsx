@@ -16,11 +16,38 @@ interface Participation {
   aceiteTermos: boolean
   aceitePrivacidade: boolean
   aceiteMarketing: boolean
+  status: string
   createdAt: string
+}
+
+interface AttemptSummary {
+  totalAttempts: number
+  totalWithBoth: number
+  totalWithTalaoOnly: number
+  totalWithPhotoOnly: number
+  totalRejected: number
+  rejectedWithTalaoOnly: number
+  rejectedWithPhotoOnly: number
+  invalidReceiptAttempts: number
+}
+
+interface AdminStatsResponse {
+  participations: Participation[]
+  attemptSummary: AttemptSummary
 }
 
 export default function AdminStatsPage() {
   const [participations, setParticipations] = useState<Participation[]>([])
+  const [attemptSummary, setAttemptSummary] = useState<AttemptSummary>({
+    totalAttempts: 0,
+    totalWithBoth: 0,
+    totalWithTalaoOnly: 0,
+    totalWithPhotoOnly: 0,
+    totalRejected: 0,
+    rejectedWithTalaoOnly: 0,
+    rejectedWithPhotoOnly: 0,
+    invalidReceiptAttempts: 0,
+  })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -29,10 +56,11 @@ export default function AdminStatsPage() {
 
   const fetchParticipations = async () => {
     try {
-      const response = await fetch('/api/admin/participations')
+      const response = await fetch('/api/admin/stats')
       if (response.ok) {
-        const data = await response.json()
-        setParticipations(data)
+        const data: AdminStatsResponse = await response.json()
+        setParticipations(data.participations)
+        setAttemptSummary(data.attemptSummary)
       }
     } catch (error) {
       console.error('Error fetching participations:', error)
@@ -54,9 +82,14 @@ export default function AdminStatsPage() {
 
   // Calculate statistics
   const totalParticipations = participations.length
-  const totalWithPhotos = participations.filter(p => p.fotoBlob && p.talaoBlob).length
-  const totalWithTalaoOnly = participations.filter(p => p.talaoBlob && !p.fotoBlob).length
-  const totalWithPhotoOnly = participations.filter(p => p.fotoBlob && !p.talaoBlob).length
+  const participationWithBoth = participations.filter(p => p.fotoBlob && p.talaoBlob).length
+  const participationWithTalaoOnly = participations.filter(p => p.talaoBlob && !p.fotoBlob).length
+  const participationWithPhotoOnly = participations.filter(p => p.fotoBlob && !p.talaoBlob).length
+  const useAttemptSummary = attemptSummary.totalAttempts > 0
+  const typeStatsTotal = useAttemptSummary ? attemptSummary.totalAttempts : totalParticipations
+  const totalWithPhotos = useAttemptSummary ? attemptSummary.totalWithBoth : participationWithBoth
+  const totalWithTalaoOnly = useAttemptSummary ? attemptSummary.totalWithTalaoOnly : participationWithTalaoOnly
+  const totalWithPhotoOnly = useAttemptSummary ? attemptSummary.totalWithPhotoOnly : participationWithPhotoOnly
   const totalMarketingConsent = participations.filter(p => p.aceiteMarketing).length
   const totalApproved = participations.filter(p => p.status === 'approved').length
   const totalRejected = participations.filter(p => p.status === 'rejected').length
@@ -175,13 +208,16 @@ export default function AdminStatsPage() {
             <CardTitle>Tipos de Participação</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <p className="text-xs text-slate-500">
+              Inclui tentativas rejeitadas pelo sistema quando existe registo de submissão.
+            </p>
             <div className="flex items-center justify-between">
               <span className="text-sm">Completas (Talão + Foto)</span>
               <div className="flex items-center gap-2">
                 <div className="w-20 bg-slate-200 rounded-full h-2">
                   <div
                     className="bg-green-500 h-2 rounded-full"
-                    style={{ width: `${totalParticipations > 0 ? (totalWithPhotos / totalParticipations) * 100 : 0}%` }}
+                    style={{ width: `${typeStatsTotal > 0 ? (totalWithPhotos / typeStatsTotal) * 100 : 0}%` }}
                   ></div>
                 </div>
                 <span className="text-sm font-medium w-12 text-right">{totalWithPhotos}</span>
@@ -190,11 +226,23 @@ export default function AdminStatsPage() {
 
             <div className="flex items-center justify-between">
               <span className="text-sm">Apenas Talão</span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                {useAttemptSummary && attemptSummary.rejectedWithTalaoOnly > 0 ? (
+                  <div className="text-right">
+                    <span className="block text-xs text-amber-700">
+                      {attemptSummary.rejectedWithTalaoOnly} rejeitadas
+                    </span>
+                    {attemptSummary.invalidReceiptAttempts > 0 ? (
+                      <span className="block text-[11px] text-amber-600">
+                        {attemptSummary.invalidReceiptAttempts} talão inválido
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
                 <div className="w-20 bg-slate-200 rounded-full h-2">
                   <div
                     className="bg-yellow-500 h-2 rounded-full"
-                    style={{ width: `${totalParticipations > 0 ? (totalWithTalaoOnly / totalParticipations) * 100 : 0}%` }}
+                    style={{ width: `${typeStatsTotal > 0 ? (totalWithTalaoOnly / typeStatsTotal) * 100 : 0}%` }}
                   ></div>
                 </div>
                 <span className="text-sm font-medium w-12 text-right">{totalWithTalaoOnly}</span>
@@ -203,11 +251,16 @@ export default function AdminStatsPage() {
 
             <div className="flex items-center justify-between">
               <span className="text-sm">Apenas Foto</span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                {useAttemptSummary && attemptSummary.rejectedWithPhotoOnly > 0 ? (
+                  <span className="text-xs text-orange-700">
+                    {attemptSummary.rejectedWithPhotoOnly} rejeitadas
+                  </span>
+                ) : null}
                 <div className="w-20 bg-slate-200 rounded-full h-2">
                   <div
                     className="bg-orange-500 h-2 rounded-full"
-                    style={{ width: `${totalParticipations > 0 ? (totalWithPhotoOnly / totalParticipations) * 100 : 0}%` }}
+                    style={{ width: `${typeStatsTotal > 0 ? (totalWithPhotoOnly / typeStatsTotal) * 100 : 0}%` }}
                   ></div>
                 </div>
                 <span className="text-sm font-medium w-12 text-right">{totalWithPhotoOnly}</span>

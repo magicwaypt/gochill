@@ -14,3 +14,12 @@ export const participations = pgTable('participations', {
   status: text('status').default('pending').notNull(), // 'pending', 'approved', 'rejected'
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+export const submissionAttempts = pgTable('submission_attempts', {
+  id: serial('id').primaryKey(),
+  hasTalao: boolean('has_talao').notNull(),
+  hasFoto: boolean('has_foto').notNull(),
+  outcome: text('outcome').notNull(), // 'accepted', 'rejected'
+  rejectionReason: text('rejection_reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})

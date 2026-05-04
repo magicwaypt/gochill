@@ -28,6 +28,23 @@ export default function GoChillLandingPage() {
   const fileInputRefTalon = useRef<HTMLInputElement>(null)
   const fileInputRefFoto = useRef<HTMLInputElement>(null)
 
+  const logRejectedAttempt = async (payload: { hasTalao: boolean; hasFoto: boolean; rejectionReason: string }) => {
+    try {
+      await fetch('/api/participate/attempt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...payload,
+          outcome: 'rejected',
+        }),
+      })
+    } catch (error) {
+      console.error('Error logging rejected attempt:', error)
+    }
+  }
+
   const isValidReceiptImage = (file: File) =>
     new Promise<boolean>((resolve) => {
       const imageUrl = URL.createObjectURL(file)
@@ -55,6 +72,11 @@ export default function GoChillLandingPage() {
         const isReceiptImage = await isValidReceiptImage(selectedFile)
 
         if (!isReceiptImage) {
+          await logRejectedAttempt({
+            hasTalao: true,
+            hasFoto: uploadedFoto !== null,
+            rejectionReason: 'invalid_receipt_shape',
+          })
           setUploadedTalon(null)
           setTalonError("Ups! Parece que a imagem enviada não corresponde a um talão de compra.\nEnvia uma foto nítida do talão de compra.")
           e.target.value = ""

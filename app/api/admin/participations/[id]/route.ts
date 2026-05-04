@@ -5,11 +5,12 @@ import { eq } from 'drizzle-orm'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const { status } = await request.json()
-    const participationId = parseInt(params.id)
+    const participationId = parseInt(id)
 
     if (!participationId || isNaN(participationId)) {
       return NextResponse.json(

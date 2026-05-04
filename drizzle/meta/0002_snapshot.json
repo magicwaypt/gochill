@@ -1,0 +1,156 @@
+{
+  "id": "496dd781-2efc-474c-9fb6-6c117dbf5a9a",
+  "prevId": "dcdfc06e-0181-461f-b0af-fec95449153f",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.participations": {
+      "name": "participations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "telemovel": {
+          "name": "telemovel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "talao_blob": {
+          "name": "talao_blob",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "foto_blob": {
+          "name": "foto_blob",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "aceite_maior_18": {
+          "name": "aceite_maior_18",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aceite_termos": {
+          "name": "aceite_termos",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aceite_privacidade": {
+          "name": "aceite_privacidade",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aceite_marketing": {
+          "name": "aceite_marketing",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.submission_attempts": {
+      "name": "submission_attempts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "has_talao": {
+          "name": "has_talao",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "has_foto": {
+          "name": "has_foto",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "outcome": {
+          "name": "outcome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rejection_reason": {
+          "name": "rejection_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

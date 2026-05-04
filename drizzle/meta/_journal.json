@@ -15,6 +15,13 @@
       "when": 1777848609980,
       "tag": "0001_dizzy_gravity",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777884519625,
+      "tag": "0002_chief_dormammu",
+      "breakpoints": true
     }
   ]
 }
