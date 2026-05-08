@@ -8,7 +8,77 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
+import { INVALID_RECEIPT_MESSAGE, isValidTelemovel, normalizeTelemovel } from "@/lib/participation-validation"
 import { ShoppingCart, Upload, Send, Award, Camera } from "lucide-react"
+
+const MAX_UPLOAD_DIMENSION = 1600
+const JPEG_QUALITY = 0.82
+
+const getJpegFilename = (fileName: string) => {
+  const trimmedFileName = fileName.trim()
+  const extensionIndex = trimmedFileName.lastIndexOf(".")
+
+  if (extensionIndex <= 0) {
+    return `${trimmedFileName || "upload"}.jpg`
+  }
+
+  return `${trimmedFileName.slice(0, extensionIndex)}.jpg`
+}
+
+const loadImageElement = (file: File) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file)
+    const image = new window.Image()
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+      resolve(image)
+    }
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error("image_load_failed"))
+    }
+
+    image.src = objectUrl
+  })
+
+const normalizeImageFile = async (file: File) => {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("invalid_image_type")
+  }
+
+  const image = await loadImageElement(file)
+  const maxSide = Math.max(image.naturalWidth, image.naturalHeight)
+  const scale = maxSide > MAX_UPLOAD_DIMENSION ? MAX_UPLOAD_DIMENSION / maxSide : 1
+  const width = Math.max(1, Math.round(image.naturalWidth * scale))
+  const height = Math.max(1, Math.round(image.naturalHeight * scale))
+  const canvas = document.createElement("canvas")
+
+  canvas.width = width
+  canvas.height = height
+
+  const context = canvas.getContext("2d")
+
+  if (!context) {
+    throw new Error("canvas_context_unavailable")
+  }
+
+  context.drawImage(image, 0, 0, width, height)
+
+  const normalizedBlob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY)
+  })
+
+  if (!normalizedBlob) {
+    throw new Error("image_normalization_failed")
+  }
+
+  return new File([normalizedBlob], getJpegFilename(file.name), {
+    type: "image/jpeg",
+    lastModified: Date.now(),
+  })
+}
 
 export default function GoChillLandingPage() {
   const [formData, setFormData] = useState({
@@ -19,87 +89,109 @@ export default function GoChillLandingPage() {
   const [uploadedTalon, setUploadedTalon] = useState<File | null>(null)
   const [uploadedFoto, setUploadedFoto] = useState<File | null>(null)
   const [talonError, setTalonError] = useState("")
+  const [fotoError, setFotoError] = useState("")
   const [aceiteMaior18, setAceiteMaior18] = useState(false)
   const [aceiteTermos, setAceiteTermos] = useState(false)
   const [aceitePrivacidade, setAceitePrivacidade] = useState(false)
   const [aceiteMarketing, setAceiteMarketing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPreparingTalao, setIsPreparingTalao] = useState(false)
+  const [isValidatingTalao, setIsValidatingTalao] = useState(false)
+  const [isPreparingFoto, setIsPreparingFoto] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const fileInputRefTalon = useRef<HTMLInputElement>(null)
   const fileInputRefFoto = useRef<HTMLInputElement>(null)
 
-  const logRejectedAttempt = async (payload: { hasTalao: boolean; hasFoto: boolean; rejectionReason: string }) => {
-    try {
-      await fetch('/api/participate/attempt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...payload,
-          outcome: 'rejected',
-        }),
-      })
-    } catch (error) {
-      console.error('Error logging rejected attempt:', error)
+  const validateReceiptFile = async (file: File) => {
+    const validationFormData = new FormData()
+    validationFormData.append("talao", file)
+
+    const response = await fetch("/api/participate/validate-receipt", {
+      method: "POST",
+      body: validationFormData,
+    })
+
+    if (response.ok) {
+      return { ok: true as const }
+    }
+
+    const errorData = await response.json().catch(() => null)
+
+    return {
+      ok: false as const,
+      code: errorData?.code as string | undefined,
+      error: errorData?.error as string | undefined,
     }
   }
-
-  const isValidReceiptImage = (file: File) =>
-    new Promise<boolean>((resolve) => {
-      const imageUrl = URL.createObjectURL(file)
-      const previewImage = new window.Image()
-
-      previewImage.onload = () => {
-        const isReceiptShape = previewImage.height >= previewImage.width * 1.15
-        URL.revokeObjectURL(imageUrl)
-        resolve(isReceiptShape)
-      }
-
-      previewImage.onerror = () => {
-        URL.revokeObjectURL(imageUrl)
-        resolve(false)
-      }
-
-      previewImage.src = imageUrl
-    })
 
   const handleFileChangeTalon = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0]
 
-      if (selectedFile.type.startsWith("image/")) {
-        const isReceiptImage = await isValidReceiptImage(selectedFile)
+      setUploadedTalon(null)
+      setTalonError("")
+      setIsPreparingTalao(true)
 
-        if (!isReceiptImage) {
-          await logRejectedAttempt({
-            hasTalao: true,
-            hasFoto: uploadedFoto !== null,
-            rejectionReason: 'invalid_receipt_shape',
-          })
+      try {
+        const normalizedFile = await normalizeImageFile(selectedFile)
+        setIsValidatingTalao(true)
+
+        const validationResult = await validateReceiptFile(normalizedFile)
+
+        if (!validationResult.ok) {
           setUploadedTalon(null)
-          setTalonError("Ups! Parece que a imagem enviada não corresponde a um talão de compra.\nEnvia uma foto nítida do talão de compra.")
+          setTalonError(validationResult.error || INVALID_RECEIPT_MESSAGE)
           e.target.value = ""
           return
         }
-      }
 
-      setTalonError("")
-      setUploadedTalon(selectedFile)
+        setUploadedTalon(normalizedFile)
+        setTalonError("")
+      } catch (error) {
+        console.error('Error preparing talão image:', error)
+        setUploadedTalon(null)
+        setTalonError("Não foi possível processar a imagem do talão. Usa uma fotografia nítida em JPG, PNG ou HEIC.")
+        e.target.value = ""
+      } finally {
+        setIsPreparingTalao(false)
+        setIsValidatingTalao(false)
+      }
     }
   }
 
-  const handleFileChangeFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChangeFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setUploadedFoto(e.target.files[0])
+      const selectedFile = e.target.files[0]
+
+      setIsPreparingFoto(true)
+
+      try {
+        const normalizedFile = await normalizeImageFile(selectedFile)
+        setUploadedFoto(normalizedFile)
+        setFotoError("")
+      } catch (error) {
+        console.error('Error preparing participation photo:', error)
+        setUploadedFoto(null)
+        setFotoError("Não foi possível processar a fotografia. Usa uma imagem em JPG, PNG ou HEIC.")
+        e.target.value = ""
+      } finally {
+        setIsPreparingFoto(false)
+      }
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!aceiteMaior18 || !aceiteTermos || !aceitePrivacidade || !uploadedTalon || !uploadedFoto) return
+    if (!aceiteMaior18 || !aceiteTermos || !aceitePrivacidade || !uploadedTalon || !uploadedFoto || isPreparingTalao || isValidatingTalao || isPreparingFoto) return
+
+    if (!isValidTelemovel(formData.telemovel)) {
+      alert('O número de telemóvel deve ter exatamente 9 algarismos.')
+      return
+    }
 
     setIsSubmitting(true)
+    setTalonError("")
+    setFotoError("")
 
     try {
       const formDataToSend = new FormData()
@@ -121,8 +213,27 @@ export default function GoChillLandingPage() {
       if (response.ok) {
         setSubmitted(true)
       } else {
-        const errorData = await response.json()
-        alert(errorData.error || 'Erro ao submeter participação')
+        const errorData = await response.json().catch(() => null)
+
+        if (errorData?.code === 'invalid_receipt_image' || errorData?.code === 'invalid_receipt_type') {
+          setUploadedTalon(null)
+          if (fileInputRefTalon.current) {
+            fileInputRefTalon.current.value = ''
+          }
+          setTalonError(errorData.error || INVALID_RECEIPT_MESSAGE)
+          return
+        }
+
+        if (errorData?.code === 'invalid_photo_type') {
+          setUploadedFoto(null)
+          if (fileInputRefFoto.current) {
+            fileInputRefFoto.current.value = ''
+          }
+          setFotoError(errorData.error || 'A fotografia enviada tem de ser uma imagem válida.')
+          return
+        }
+
+        alert(errorData?.error || 'Erro ao submeter participação')
       }
     } catch (error) {
       console.error('Error submitting form:', error)
@@ -397,7 +508,10 @@ export default function GoChillLandingPage() {
                           required
                           placeholder="911 111 111"
                           value={formData.telemovel}
-                          onChange={(e) => setFormData({ ...formData, telemovel: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, telemovel: normalizeTelemovel(e.target.value) })}
+                          inputMode="numeric"
+                          pattern="[0-9]{9}"
+                          maxLength={9}
                           className="border-[#d4c4b0] focus:border-[#f47920] focus:ring-[#f47920] bg-white"
                         />
                       </div>
@@ -411,7 +525,7 @@ export default function GoChillLandingPage() {
                           type="file"
                           ref={fileInputRefTalon}
                           onChange={handleFileChangeTalon}
-                          accept="image/*,.pdf"
+                          accept="image/*"
                           className="hidden"
                         />
                         <div
@@ -424,7 +538,16 @@ export default function GoChillLandingPage() {
                               : 'border-[#d4c4b0] hover:border-[#f47920] hover:bg-[#fff8f0]'
                           }`}
                         >
-                          {uploadedTalon ? (
+                          {isPreparingTalao || isValidatingTalao ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="w-10 h-10 bg-[#f47920]/10 rounded-full flex items-center justify-center">
+                                <Upload className="w-6 h-6 text-[#f47920] animate-pulse" />
+                              </div>
+                              <p className="text-[#3d2314] font-medium">
+                                {isPreparingTalao ? "A preparar imagem do talão..." : "A validar talão..."}
+                              </p>
+                            </div>
+                          ) : uploadedTalon ? (
                             <div className="flex flex-col items-center gap-2">
                               <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
                                 <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -439,8 +562,8 @@ export default function GoChillLandingPage() {
                               <div className="w-12 h-12 bg-[#f47920]/10 rounded-full flex items-center justify-center">
                                 <Upload className="w-6 h-6 text-[#f47920]" />
                               </div>
-                              <p className="text-[#3d2314] font-medium">Clica para carregar o talão</p>
-                              <p className="text-xs text-[#8b7355]">Formatos aceites: JPG, PNG, PDF. As imagens devem estar em formato vertical de talão.</p>
+                              <p className="text-[#3d2314] font-medium">Clica para fotografar ou anexar o talão</p>
+                              <p className="text-xs text-[#8b7355]">Formatos aceites: JPG, PNG, HEIC. O talão ou fatura é validado automaticamente no envio.</p>
                             </div>
                           )}
                         </div>
@@ -467,7 +590,14 @@ export default function GoChillLandingPage() {
                               : 'border-[#d4c4b0] hover:border-[#f47920] hover:bg-[#fff8f0]'
                           }`}
                         >
-                          {uploadedFoto ? (
+                          {isPreparingFoto ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="w-10 h-10 bg-[#f47920]/10 rounded-full flex items-center justify-center">
+                                <Upload className="w-6 h-6 text-[#f47920] animate-pulse" />
+                              </div>
+                              <p className="text-[#3d2314] font-medium">A preparar fotografia...</p>
+                            </div>
+                          ) : uploadedFoto ? (
                             <div className="flex flex-col items-center gap-2">
                               <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
                                 <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -482,11 +612,12 @@ export default function GoChillLandingPage() {
                               <div className="w-12 h-12 bg-[#f47920]/10 rounded-full flex items-center justify-center">
                                 <Upload className="w-6 h-6 text-[#f47920]" />
                               </div>
-                              <p className="text-[#3d2314] font-medium">Clica para carregar a fotografia</p>
-                              <p className="text-xs text-[#8b7355]">Formatos aceites: JPG, PNG</p>
+                              <p className="text-[#3d2314] font-medium">Clica para fotografar ou anexar a fotografia</p>
+                              <p className="text-xs text-[#8b7355]">Formatos aceites: JPG, PNG, HEIC</p>
                             </div>
                           )}
                         </div>
+                        {fotoError ? <p className="whitespace-pre-line text-sm text-red-600">{fotoError}</p> : null}
                       </div>
 
                       <div className="space-y-4 pt-4 border-t border-[#e8ddd0]">
@@ -549,7 +680,7 @@ export default function GoChillLandingPage() {
 
                       <Button
                         type="submit"
-                        disabled={!aceiteMaior18 || !aceiteTermos || !aceitePrivacidade || !uploadedTalon || !uploadedFoto || isSubmitting}
+                        disabled={!aceiteMaior18 || !aceiteTermos || !aceitePrivacidade || !uploadedTalon || !uploadedFoto || isSubmitting || isPreparingTalao || isValidatingTalao || isPreparingFoto}
                         className="w-full bg-[#c73d3d] hover:bg-[#a82f2f] text-white font-bold text-lg py-6 rounded-lg shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all"
                       >
                         {isSubmitting ? "A enviar..." : "PARTICIPAR"}
@@ -573,7 +704,7 @@ export default function GoChillLandingPage() {
       {/* Footer */}
       <footer className="bg-[#3d2314] py-8">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-6">
             <Image
               src="/images/logo.png"
               alt="Go Chill"
@@ -589,6 +720,23 @@ export default function GoChillLandingPage() {
                 ibiza.gochill@tpower.pt
               </p>
             </div>
+            <nav aria-label="Documentos legais" className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-white/80">
+              <Link href="/regulamento.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                Regulamento
+              </Link>
+              <Link href="/termos_e_condicoes_de_utilizacao_do_site.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                Termos e Condições
+              </Link>
+              <Link href="/politica_de_privacidade.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                Política de Privacidade
+              </Link>
+              <Link href="/politica_de_cookies.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                Política de Cookies
+              </Link>
+              <Link href="/preferencias-cookies" className="hover:text-white transition-colors">
+                Preferências de Cookies
+              </Link>
+            </nav>
             <p className="text-white/50 text-xs text-center">
               © 2026 Delta Cafés - Go Chill. Todos os direitos reservados.
             </p>

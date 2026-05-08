@@ -5,6 +5,7 @@ export const participations = pgTable('participations', {
   nome: text('nome').notNull(),
   email: text('email').notNull(),
   telemovel: text('telemovel').notNull(),
+  notes: text('notes'),
   talaoBlob: text('talao_blob'), // Store base64 encoded image
   fotoBlob: text('foto_blob'), // Store base64 encoded image
   aceiteMaior18: boolean('aceite_maior_18').notNull(),

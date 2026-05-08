@@ -6,13 +6,11 @@ import { participations, submissionAttempts } from '@/lib/schema'
 
 const emptyAttemptSummary = {
   totalAttempts: 0,
-  totalWithBoth: 0,
-  totalWithTalaoOnly: 0,
-  totalWithPhotoOnly: 0,
+  successfulAttempts: 0,
   totalRejected: 0,
-  rejectedWithTalaoOnly: 0,
-  rejectedWithPhotoOnly: 0,
   invalidReceiptAttempts: 0,
+  receiptValidationUnavailableAttempts: 0,
+  otherRejectedAttempts: 0,
 }
 
 export async function GET() {
@@ -30,21 +28,26 @@ export async function GET() {
         .from(submissionAttempts)
         .orderBy(desc(submissionAttempts.createdAt))
 
+      const totalRejected = allSubmissionAttempts.filter((attempt) => attempt.outcome === 'rejected').length
+      const invalidReceiptAttempts = allSubmissionAttempts.filter((attempt) =>
+        attempt.rejectionReason === 'invalid_receipt_image' ||
+        attempt.rejectionReason === 'invalid_receipt_shape' ||
+        attempt.rejectionReason === 'invalid_receipt_type'
+      ).length
+      const receiptValidationUnavailableAttempts = allSubmissionAttempts.filter(
+        (attempt) => attempt.rejectionReason === 'receipt_validation_unavailable'
+      ).length
+
       attemptSummary = {
         totalAttempts: allSubmissionAttempts.length,
-        totalWithBoth: allSubmissionAttempts.filter((attempt) => attempt.hasTalao && attempt.hasFoto).length,
-        totalWithTalaoOnly: allSubmissionAttempts.filter((attempt) => attempt.hasTalao && !attempt.hasFoto).length,
-        totalWithPhotoOnly: allSubmissionAttempts.filter((attempt) => attempt.hasFoto && !attempt.hasTalao).length,
-        totalRejected: allSubmissionAttempts.filter((attempt) => attempt.outcome === 'rejected').length,
-        rejectedWithTalaoOnly: allSubmissionAttempts.filter(
-          (attempt) => attempt.outcome === 'rejected' && attempt.hasTalao && !attempt.hasFoto
-        ).length,
-        rejectedWithPhotoOnly: allSubmissionAttempts.filter(
-          (attempt) => attempt.outcome === 'rejected' && attempt.hasFoto && !attempt.hasTalao
-        ).length,
-        invalidReceiptAttempts: allSubmissionAttempts.filter(
-          (attempt) => attempt.rejectionReason === 'invalid_receipt_shape'
-        ).length,
+        successfulAttempts: allSubmissionAttempts.filter((attempt) => attempt.outcome === 'accepted').length,
+        totalRejected,
+        invalidReceiptAttempts,
+        receiptValidationUnavailableAttempts,
+        otherRejectedAttempts: Math.max(
+          totalRejected - invalidReceiptAttempts - receiptValidationUnavailableAttempts,
+          0
+        ),
       }
     } catch (error) {
       console.warn('Submission attempts stats unavailable, falling back to participations only:', error)

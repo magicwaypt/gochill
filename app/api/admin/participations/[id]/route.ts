@@ -9,7 +9,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const { status } = await request.json()
+    const { status, notes } = await request.json()
     const participationId = parseInt(id)
 
     if (!participationId || isNaN(participationId)) {
@@ -19,22 +19,46 @@ export async function PATCH(
       )
     }
 
-    if (!['pending', 'approved', 'rejected'].includes(status)) {
+    if (status !== undefined && !['pending', 'approved', 'rejected'].includes(status)) {
       return NextResponse.json(
         { error: 'Status inválido. Deve ser: pending, approved, ou rejected' },
         { status: 400 }
       )
     }
 
-    // Update the participation status
+    if (notes !== undefined && notes !== null && typeof notes !== 'string') {
+      return NextResponse.json(
+        { error: 'Notas inválidas' },
+        { status: 400 }
+      )
+    }
+
+    const updates: { status?: string; notes?: string | null } = {}
+
+    if (status !== undefined) {
+      updates.status = status
+    }
+
+    if (notes !== undefined) {
+      const normalizedNotes = typeof notes === 'string' ? notes.trim() : ''
+      updates.notes = normalizedNotes.length > 0 ? normalizedNotes : null
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: 'Nada para atualizar' },
+        { status: 400 }
+      )
+    }
+
     await db
       .update(participations)
-      .set({ status })
+      .set(updates)
       .where(eq(participations.id, participationId))
 
     return NextResponse.json({
       success: true,
-      message: 'Status atualizado com sucesso'
+      message: 'Participação atualizada com sucesso'
     })
 
   } catch (error) {

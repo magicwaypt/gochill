@@ -25,7 +25,7 @@ export default function PreferenciasCookiesPage() {
       {/* Header */}
       <div className="bg-[#3d2314] py-4">
         <div className="container mx-auto px-4 flex items-center gap-4">
-          <Link href="/passatempogochill2026">
+          <Link href="/" aria-label="Voltar à página inicial">
             <Image
               src="/images/logo.png"
               alt="Go Chill"
@@ -193,7 +193,7 @@ export default function PreferenciasCookiesPage() {
         )}
 
         <div className="mt-8">
-          <Link href="/passatempogochill2026" className="text-[#f47920] hover:underline font-medium text-sm">
+          <Link href="/" className="text-[#f47920] hover:underline font-medium text-sm">
             ← Voltar à página do passatempo
           </Link>
         </div>

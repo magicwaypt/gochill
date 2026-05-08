@@ -7,14 +7,18 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Eye, Download, Users, Image as ImageIcon, Calendar, Trophy, Award, Clock } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Eye, Download, Users, Calendar, Award, Clock, FileSpreadsheet, StickyNote } from "lucide-react"
+
+import { getClientAdminHref } from "@/lib/admin-auth"
 
 interface Participation {
   id: number
   nome: string
   email: string
   telemovel: string
+  notes: string | null
   talaoBlob: string | null
   fotoBlob: string | null
   aceiteMaior18: boolean
@@ -30,9 +34,13 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [selectedParticipation, setSelectedParticipation] = useState<Participation | null>(null)
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string>("")
+  const [notesModalOpen, setNotesModalOpen] = useState(false)
+  const [selectedParticipation, setSelectedParticipation] = useState<Participation | null>(null)
+  const [noteDraft, setNoteDraft] = useState("")
+  const [isSavingNotes, setIsSavingNotes] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   useEffect(() => {
     fetchParticipations()
@@ -55,11 +63,12 @@ export function AdminDashboard() {
   const filteredParticipations = participations.filter(participation => {
     const matchesSearch = participation.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          participation.email.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesSearch
+    const matchesStatus = statusFilter === 'all' || participation.status === statusFilter
+
+    return matchesSearch && matchesStatus
   })
 
   const totalParticipations = participations.length
-  const totalWithPhotos = participations.filter(p => p.fotoBlob && p.talaoBlob).length
   const totalApproved = participations.filter(p => p.status === 'approved').length
   const totalRejected = participations.filter(p => p.status === 'rejected').length
   const totalPending = participations.filter(p => p.status === 'pending').length
@@ -71,6 +80,12 @@ export function AdminDashboard() {
   const openImageModal = (imageBlob: string) => {
     setSelectedImage(imageBlob)
     setImageModalOpen(true)
+  }
+
+  const openNotesModal = (participation: Participation) => {
+    setSelectedParticipation(participation)
+    setNoteDraft(participation.notes || "")
+    setNotesModalOpen(true)
   }
 
   const updateParticipationStatus = async (id: number, status: string) => {
@@ -97,11 +112,114 @@ export function AdminDashboard() {
     }
   }
 
+  const saveParticipationNotes = async () => {
+    if (!selectedParticipation) {
+      return
+    }
+
+    setIsSavingNotes(true)
+
+    try {
+      const response = await fetch(`/api/admin/participations/${selectedParticipation.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ notes: noteDraft }),
+      })
+
+      if (!response.ok) {
+        alert('Erro ao guardar notas')
+        return
+      }
+
+      const normalizedNotes = noteDraft.trim()
+
+      setParticipations((currentParticipations) =>
+        currentParticipations.map((participation) =>
+          participation.id === selectedParticipation.id
+            ? { ...participation, notes: normalizedNotes || null }
+            : participation
+        )
+      )
+      setNotesModalOpen(false)
+      setSelectedParticipation(null)
+      setNoteDraft("")
+    } catch (error) {
+      console.error('Error saving notes:', error)
+      alert('Erro ao guardar notas')
+    } finally {
+      setIsSavingNotes(false)
+    }
+  }
+
   const downloadImage = (imageBlob: string, filename: string) => {
     const link = document.createElement('a')
     link.href = `data:image/jpeg;base64,${imageBlob}`
     link.download = filename
     link.click()
+  }
+
+  const exportParticipations = async () => {
+    if (isExporting) {
+      return
+    }
+
+    setIsExporting(true)
+
+    try {
+      const XLSX = await import('xlsx')
+      const rows = participations.map((participation) => ({
+        ID: participation.id,
+        Nome: participation.nome,
+        Email: participation.email,
+        Telemovel: participation.telemovel,
+        Notas: participation.notes || '',
+        Status:
+          participation.status === 'approved'
+            ? 'Aprovada'
+            : participation.status === 'rejected'
+              ? 'Rejeitada'
+              : 'Pendente',
+        AceiteMaior18: participation.aceiteMaior18 ? 'Sim' : 'Não',
+        AceiteTermos: participation.aceiteTermos ? 'Sim' : 'Não',
+        AceitePrivacidade: participation.aceitePrivacidade ? 'Sim' : 'Não',
+        AceiteMarketing: participation.aceiteMarketing ? 'Sim' : 'Não',
+        TemTalao: participation.talaoBlob ? 'Sim' : 'Não',
+        TemFoto: participation.fotoBlob ? 'Sim' : 'Não',
+        TalaoUrl: participation.talaoBlob
+          ? getClientAdminHref(`/api/admin/participations/${participation.id}/files/talao`)
+          : '',
+        FotoUrl: participation.fotoBlob
+          ? getClientAdminHref(`/api/admin/participations/${participation.id}/files/foto`)
+          : '',
+        DataCriacao: new Date(participation.createdAt).toISOString(),
+      }))
+
+      const workbook = XLSX.utils.book_new()
+      const worksheet = XLSX.utils.json_to_sheet(rows)
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Participacoes')
+
+      const fileBuffer = XLSX.write(workbook, {
+        type: 'array',
+        bookType: 'xlsx',
+      })
+
+      const blob = new Blob([fileBuffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+      const objectUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = objectUrl
+      link.download = 'participacoes-gochill.xlsx'
+      link.click()
+      URL.revokeObjectURL(objectUrl)
+    } catch (error) {
+      console.error('Error exporting participations:', error)
+      alert('Erro ao exportar Excel')
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   if (loading) {
@@ -131,11 +249,14 @@ export function AdminDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Com Fotos Completas</CardTitle>
-            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Rejeitadas</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalWithPhotos}</div>
+            <div className="text-2xl font-bold text-red-600">{totalRejected}</div>
+            <p className="text-xs text-muted-foreground">
+              Rejeitadas manualmente no backoffice
+            </p>
           </CardContent>
         </Card>
 
@@ -179,7 +300,13 @@ export function AdminDashboard() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Participações</CardTitle>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle>Participações</CardTitle>
+            <Button type="button" onClick={exportParticipations} className="sm:self-start" disabled={isExporting}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+              {isExporting ? 'A exportar...' : 'Exportar Excel'}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -197,8 +324,9 @@ export function AdminDashboard() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="complete">Completas</SelectItem>
-                <SelectItem value="incomplete">Incompletas</SelectItem>
+                <SelectItem value="pending">Pendentes</SelectItem>
+                <SelectItem value="approved">Aprovadas</SelectItem>
+                <SelectItem value="rejected">Rejeitadas</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -214,6 +342,7 @@ export function AdminDashboard() {
                   <TableHead>Telemóvel</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Notas</TableHead>
                   <TableHead>Fotos</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
@@ -240,6 +369,17 @@ export function AdminDashboard() {
                          participation.status === 'rejected' ? 'Rejeitado' :
                          'Pendente'}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-[220px] align-top">
+                      <button
+                        type="button"
+                        onClick={() => openNotesModal(participation)}
+                        className="w-full text-left"
+                      >
+                        <p className="line-clamp-3 text-sm text-slate-600">
+                          {participation.notes || 'Sem notas'}
+                        </p>
+                      </button>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -287,6 +427,14 @@ export function AdminDashboard() {
                             ✗ Rejeitar
                           </Button>
                         )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openNotesModal(participation)}
+                        >
+                          <StickyNote className="h-4 w-4 mr-1" />
+                          Notas
+                        </Button>
                         {participation.talaoBlob && (
                           <Button
                             variant="outline"
@@ -333,6 +481,45 @@ export function AdminDashboard() {
               alt="Participation"
               className="max-w-full max-h-[70vh] object-contain"
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={notesModalOpen} onOpenChange={setNotesModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedParticipation ? `Notas da submissão #${selectedParticipation.id}` : 'Notas da submissão'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm text-slate-600">
+                {selectedParticipation ? `${selectedParticipation.nome} • ${selectedParticipation.email}` : ''}
+              </p>
+              <Textarea
+                value={noteDraft}
+                onChange={(event) => setNoteDraft(event.target.value)}
+                placeholder="Adicionar notas internas sobre esta submissão"
+                className="min-h-32"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setNotesModalOpen(false)
+                  setSelectedParticipation(null)
+                  setNoteDraft("")
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button type="button" onClick={saveParticipationNotes} disabled={isSavingNotes}>
+                {isSavingNotes ? 'A guardar...' : 'Guardar notas'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
