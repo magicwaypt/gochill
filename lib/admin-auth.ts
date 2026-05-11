@@ -1,6 +1,10 @@
 export const ADMIN_SESSION_COOKIE = 'gochill_admin_session_v2'
 export const LEGACY_ADMIN_SESSION_COOKIE = 'gochill_admin_session'
 export const ADMIN_SESSION_VALUE = 'authenticated'
+export const ADMIN_SESSION_COOKIE_NAMES = [
+	ADMIN_SESSION_COOKIE,
+	LEGACY_ADMIN_SESSION_COOKIE,
+] as const
 
 const CANONICAL_ADMIN_HOST = 'www.ibiza.gochill.pt'
 const SHARED_ADMIN_COOKIE_DOMAIN = '.ibiza.gochill.pt'
@@ -26,7 +30,8 @@ export const hasAuthenticatedAdminSessionInCookieHeader = (cookieHeader?: string
 			const cookieName = cookieEntry.slice(0, separatorIndex).trim()
 			const cookieValue = cookieEntry.slice(separatorIndex + 1).trim()
 
-			return cookieName === ADMIN_SESSION_COOKIE && isAuthenticatedAdminSession(cookieValue)
+			return ADMIN_SESSION_COOKIE_NAMES.includes(cookieName as (typeof ADMIN_SESSION_COOKIE_NAMES)[number])
+				&& isAuthenticatedAdminSession(cookieValue)
 		})
 }
 

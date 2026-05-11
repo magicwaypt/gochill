@@ -3,6 +3,7 @@ import {
   ADMIN_SESSION_COOKIE,
   ADMIN_SESSION_VALUE,
   LEGACY_ADMIN_SESSION_COOKIE,
+  getAdminCookieDomain,
   getAdminCookieClearOptions,
   shouldUseSecureAdminCookie,
 } from '@/lib/admin-auth'
@@ -18,6 +19,9 @@ export async function POST(request: NextRequest) {
     const { email, password } = await request.json()
 
     if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+      const secure = shouldUseSecureAdminCookie(request.nextUrl.hostname)
+      const domain = getAdminCookieDomain(request.nextUrl.hostname)
+
       const response = NextResponse.json({
         success: true,
         message: 'Autenticação bem-sucedida'
@@ -32,9 +36,10 @@ export async function POST(request: NextRequest) {
       response.cookies.set({
         name: ADMIN_SESSION_COOKIE,
         value: ADMIN_SESSION_VALUE,
+        domain,
         httpOnly: true,
         sameSite: 'lax',
-        secure: shouldUseSecureAdminCookie(request.nextUrl.hostname),
+        secure,
         path: '/',
         maxAge: 60 * 60 * 12,
       })
@@ -50,7 +55,7 @@ export async function POST(request: NextRequest) {
         value: '',
         httpOnly: true,
         sameSite: 'lax',
-        secure: shouldUseSecureAdminCookie(request.nextUrl.hostname),
+        secure,
         path: '/',
         maxAge: 0,
       })

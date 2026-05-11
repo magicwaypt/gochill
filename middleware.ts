@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 
 import {
   ADMIN_SESSION_COOKIE,
+  LEGACY_ADMIN_SESSION_COOKIE,
   hasAuthenticatedAdminSessionInCookieHeader,
   isAuthenticatedAdminSession,
 } from '@/lib/admin-auth'
@@ -17,7 +18,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const sessionCookie = request.cookies.get(ADMIN_SESSION_COOKIE)?.value
+  const sessionCookie =
+    request.cookies.get(ADMIN_SESSION_COOKIE)?.value
+    ?? request.cookies.get(LEGACY_ADMIN_SESSION_COOKIE)?.value
   const hasAuthenticatedCookieInHeader = hasAuthenticatedAdminSessionInCookieHeader(
     request.headers.get('cookie')
   )

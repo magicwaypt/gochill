@@ -3,6 +3,7 @@ import { desc } from 'drizzle-orm'
 import * as XLSX from 'xlsx'
 
 import { db } from '@/lib/db'
+import { createPublicParticipationFileUrl } from '@/lib/public-participation-files'
 import { participations } from '@/lib/schema'
 
 const formatBoolean = (value: boolean) => (value ? 'Sim' : 'Não')
@@ -19,9 +20,9 @@ const formatStatus = (status: string) => {
   return 'Pendente'
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const origin = arguments[0] instanceof Request ? new URL(arguments[0].url).origin : ''
+    const origin = request.nextUrl.origin
     const allParticipations = await db
       .select()
       .from(participations)
@@ -40,8 +41,20 @@ export async function GET() {
       AceiteMarketing: formatBoolean(participation.aceiteMarketing),
       TemTalao: formatBoolean(Boolean(participation.talaoBlob)),
       TemFoto: formatBoolean(Boolean(participation.fotoBlob)),
-      TalaoUrl: participation.talaoBlob ? `${origin}/api/admin/participations/${participation.id}/files/talao` : '',
-      FotoUrl: participation.fotoBlob ? `${origin}/api/admin/participations/${participation.id}/files/foto` : '',
+      TalaoUrl: participation.talaoBlob
+        ? createPublicParticipationFileUrl({
+            origin,
+            participationId: participation.id,
+            fileType: 'talao',
+          })
+        : '',
+      FotoUrl: participation.fotoBlob
+        ? createPublicParticipationFileUrl({
+            origin,
+            participationId: participation.id,
+            fileType: 'foto',
+          })
+        : '',
       DataCriacao: new Date(participation.createdAt).toISOString(),
     }))
 

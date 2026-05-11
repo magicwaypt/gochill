@@ -40,7 +40,6 @@ export function AdminDashboard() {
   const [selectedParticipation, setSelectedParticipation] = useState<Participation | null>(null)
   const [noteDraft, setNoteDraft] = useState("")
   const [isSavingNotes, setIsSavingNotes] = useState(false)
-  const [isExporting, setIsExporting] = useState(false)
 
   useEffect(() => {
     fetchParticipations()
@@ -160,66 +159,10 @@ export function AdminDashboard() {
     link.click()
   }
 
-  const exportParticipations = async () => {
-    if (isExporting) {
-      return
-    }
-
-    setIsExporting(true)
-
-    try {
-      const XLSX = await import('xlsx')
-      const rows = participations.map((participation) => ({
-        ID: participation.id,
-        Nome: participation.nome,
-        Email: participation.email,
-        Telemovel: participation.telemovel,
-        Notas: participation.notes || '',
-        Status:
-          participation.status === 'approved'
-            ? 'Aprovada'
-            : participation.status === 'rejected'
-              ? 'Rejeitada'
-              : 'Pendente',
-        AceiteMaior18: participation.aceiteMaior18 ? 'Sim' : 'Não',
-        AceiteTermos: participation.aceiteTermos ? 'Sim' : 'Não',
-        AceitePrivacidade: participation.aceitePrivacidade ? 'Sim' : 'Não',
-        AceiteMarketing: participation.aceiteMarketing ? 'Sim' : 'Não',
-        TemTalao: participation.talaoBlob ? 'Sim' : 'Não',
-        TemFoto: participation.fotoBlob ? 'Sim' : 'Não',
-        TalaoUrl: participation.talaoBlob
-          ? getClientAdminHref(`/api/admin/participations/${participation.id}/files/talao`)
-          : '',
-        FotoUrl: participation.fotoBlob
-          ? getClientAdminHref(`/api/admin/participations/${participation.id}/files/foto`)
-          : '',
-        DataCriacao: new Date(participation.createdAt).toISOString(),
-      }))
-
-      const workbook = XLSX.utils.book_new()
-      const worksheet = XLSX.utils.json_to_sheet(rows)
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Participacoes')
-
-      const fileBuffer = XLSX.write(workbook, {
-        type: 'array',
-        bookType: 'xlsx',
-      })
-
-      const blob = new Blob([fileBuffer], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      })
-      const objectUrl = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = objectUrl
-      link.download = 'participacoes-gochill.xlsx'
-      link.click()
-      URL.revokeObjectURL(objectUrl)
-    } catch (error) {
-      console.error('Error exporting participations:', error)
-      alert('Erro ao exportar Excel')
-    } finally {
-      setIsExporting(false)
-    }
+  const exportParticipations = () => {
+    const link = document.createElement('a')
+    link.href = getClientAdminHref('/api/admin/participations/export')
+    link.click()
   }
 
   if (loading) {
@@ -302,9 +245,9 @@ export function AdminDashboard() {
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>Participações</CardTitle>
-            <Button type="button" onClick={exportParticipations} className="sm:self-start" disabled={isExporting}>
+            <Button type="button" onClick={exportParticipations} className="sm:self-start">
                 <FileSpreadsheet className="mr-2 h-4 w-4" />
-              {isExporting ? 'A exportar...' : 'Exportar Excel'}
+              Exportar Excel
             </Button>
           </div>
         </CardHeader>
