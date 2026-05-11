@@ -2,24 +2,25 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { getCookieConsent, persistCookieConsent } from '@/lib/cookie-consent'
 
 export function CookieBanner() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const consent = localStorage.getItem("cookie_consent")
+    const consent = getCookieConsent()
     if (!consent) {
       setVisible(true)
     }
   }, [])
 
   const accept = () => {
-    localStorage.setItem("cookie_consent", "accepted")
+    persistCookieConsent("accepted")
     setVisible(false)
   }
 
   const reject = () => {
-    localStorage.setItem("cookie_consent", "rejected")
+    persistCookieConsent("rejected")
     setVisible(false)
   }
 

@@ -3,18 +3,23 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import {
+  getCookieConsent,
+  persistCookieConsent,
+  type CookieConsentValue,
+} from '@/lib/cookie-consent'
 
 export default function PreferenciasCookiesPage() {
   const [consent, setConsent] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    const stored = localStorage.getItem("cookie_consent")
+    const stored = getCookieConsent()
     setConsent(stored)
   }, [])
 
-  const handleSave = (value: "accepted" | "rejected") => {
-    localStorage.setItem("cookie_consent", value)
+  const handleSave = (value: CookieConsentValue) => {
+    persistCookieConsent(value)
     setConsent(value)
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)

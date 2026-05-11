@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import { Poppins, Montserrat } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { CookieBanner } from '@/components/cookie-banner'
-import { GoogleAnalytics } from '@/components/analytics/google-analytics'
+import { GoogleTagManager } from '@/components/analytics/google-tag-manager'
 import './globals.css'
+
+const GTM_CONTAINER_ID = 'GTM-P4NDJKQF'
 
 const poppins = Poppins({ 
   subsets: ["latin"],
@@ -38,7 +40,7 @@ export default function RootLayout({
         {children}
         <CookieBanner />
         {process.env.NODE_ENV === 'production' && <Analytics />}
-        {process.env.NODE_ENV === 'production' && <GoogleAnalytics GA_MEASUREMENT_ID="G-5FPL43T0N2" />}
+        {process.env.NODE_ENV === 'production' && <GoogleTagManager containerId={GTM_CONTAINER_ID} />}
       </body>
     </html>
   )
