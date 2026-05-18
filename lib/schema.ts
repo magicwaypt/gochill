@@ -13,6 +13,10 @@ export const participations = pgTable('participations', {
   aceitePrivacidade: boolean('aceite_privacidade').notNull(),
   aceiteMarketing: boolean('aceite_marketing').notNull(),
   status: text('status').default('pending').notNull(), // 'pending', 'approved', 'rejected'
+  d365SyncStatus: text('d365_sync_status').default('pending').notNull(), // 'pending', 'success', 'failed'
+  d365AccountNumber: text('d365_account_number'),
+  d365SyncError: text('d365_sync_error'),
+  d365SyncedAt: timestamp('d365_synced_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

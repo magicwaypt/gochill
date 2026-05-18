@@ -26,20 +26,28 @@ interface Participation {
   aceitePrivacidade: boolean
   aceiteMarketing: boolean
   status: string
+  d365SyncStatus: string
+  d365AccountNumber: string | null
+  d365SyncError: string | null
+  d365SyncedAt: string | null
   createdAt: string
 }
 
 export function AdminDashboard() {
+  const ITEMS_PER_PAGE = 50
   const [participations, setParticipations] = useState<Participation[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [currentPage, setCurrentPage] = useState(1)
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string>("")
   const [notesModalOpen, setNotesModalOpen] = useState(false)
   const [selectedParticipation, setSelectedParticipation] = useState<Participation | null>(null)
   const [noteDraft, setNoteDraft] = useState("")
   const [isSavingNotes, setIsSavingNotes] = useState(false)
+  const [isSyncingD365, setIsSyncingD365] = useState<Record<number, boolean>>({})
+  const [isBulkSyncingD365, setIsBulkSyncingD365] = useState(false)
 
   useEffect(() => {
     fetchParticipations()
@@ -59,6 +67,54 @@ export function AdminDashboard() {
     }
   }
 
+  const syncParticipationToD365 = async (id: number) => {
+    setIsSyncingD365((current) => ({ ...current, [id]: true }))
+
+    try {
+      const response = await fetch(`/api/admin/participations/${id}/sync-d365`, {
+        method: 'POST',
+      })
+
+      const payload = await response.json().catch(() => null)
+
+      if (response.ok && payload?.success) {
+        setParticipations((current) =>
+          current.map((p) =>
+            p.id === id
+              ? {
+                  ...p,
+                  d365SyncStatus: 'success',
+                  d365AccountNumber: payload.accountNumber ?? p.d365AccountNumber ?? null,
+                  d365SyncError: null,
+                  d365SyncedAt: new Date().toISOString(),
+                }
+              : p
+          )
+        )
+        return
+      }
+
+      setParticipations((current) =>
+        current.map((p) =>
+          p.id === id
+            ? {
+                ...p,
+                d365SyncStatus: 'failed',
+                d365SyncError: payload?.error || 'd365_sync_failed',
+              }
+            : p
+        )
+      )
+
+      alert(payload?.error || 'Erro ao sincronizar com Dynamics 365')
+    } catch (error) {
+      console.error('Error syncing participation to D365:', error)
+      alert('Erro ao sincronizar com Dynamics 365')
+    } finally {
+      setIsSyncingD365((current) => ({ ...current, [id]: false }))
+    }
+  }
+
   const filteredParticipations = participations.filter(participation => {
     const matchesSearch = participation.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          participation.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -66,6 +122,12 @@ export function AdminDashboard() {
 
     return matchesSearch && matchesStatus
   })
+
+  const totalPages = Math.max(1, Math.ceil(filteredParticipations.length / ITEMS_PER_PAGE))
+  const paginatedParticipations = filteredParticipations.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
 
   const totalParticipations = participations.length
   const totalApproved = participations.filter(p => p.status === 'approved').length
@@ -165,6 +227,44 @@ export function AdminDashboard() {
     link.click()
   }
 
+  const syncAllToD365 = async () => {
+    setIsBulkSyncingD365(true)
+
+    try {
+      const response = await fetch('/api/admin/participations/sync-d365', {
+        method: 'POST',
+      })
+
+      const payload = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        alert(payload?.error || 'Erro ao sincronizar participações com Dynamics 365')
+        return
+      }
+
+      await fetchParticipations()
+
+      alert(
+        `Sync D365 concluído: ${payload?.succeeded ?? 0} sucesso, ${payload?.failed ?? 0} falhas (total ${payload?.attempted ?? 0}).`
+      )
+    } catch (error) {
+      console.error('Error bulk syncing participations to D365:', error)
+      alert('Erro ao sincronizar participações com Dynamics 365')
+    } finally {
+      setIsBulkSyncingD365(false)
+    }
+  }
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, statusFilter])
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -245,10 +345,20 @@ export function AdminDashboard() {
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>Participações</CardTitle>
-            <Button type="button" onClick={exportParticipations} className="sm:self-start">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={syncAllToD365}
+                disabled={isBulkSyncingD365}
+              >
+                {isBulkSyncingD365 ? 'A sincronizar...' : 'Sincronizar todos (D365)'}
+              </Button>
+              <Button type="button" onClick={exportParticipations} className="sm:self-start">
                 <FileSpreadsheet className="mr-2 h-4 w-4" />
-              Exportar Excel
-            </Button>
+                Exportar Excel
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -285,13 +395,14 @@ export function AdminDashboard() {
                   <TableHead>Telemóvel</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>D365</TableHead>
                   <TableHead>Notas</TableHead>
                   <TableHead>Fotos</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredParticipations.map((participation) => (
+                {paginatedParticipations.map((participation) => (
                   <TableRow key={participation.id}>
                     <TableCell className="font-medium">#{participation.id}</TableCell>
                     <TableCell>{participation.nome}</TableCell>
@@ -312,6 +423,34 @@ export function AdminDashboard() {
                          participation.status === 'rejected' ? 'Rejeitado' :
                          'Pendente'}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={
+                            participation.d365SyncStatus === 'success'
+                              ? 'default'
+                              : participation.d365SyncStatus === 'failed'
+                              ? 'destructive'
+                              : 'secondary'
+                          }
+                        >
+                          {participation.d365SyncStatus === 'success'
+                            ? 'OK'
+                            : participation.d365SyncStatus === 'failed'
+                            ? 'Falhou'
+                            : 'Pendente'}
+                        </Badge>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => syncParticipationToD365(participation.id)}
+                          disabled={Boolean(isSyncingD365[participation.id])}
+                        >
+                          {isSyncingD365[participation.id] ? 'A sincronizar...' : 'Re-sync'}
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell className="max-w-[220px] align-top">
                       <button
@@ -403,6 +542,38 @@ export function AdminDashboard() {
               </TableBody>
             </Table>
           </div>
+
+          {filteredParticipations.length > 0 && (
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-slate-600">
+                A mostrar {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filteredParticipations.length)}-
+                {Math.min(currentPage * ITEMS_PER_PAGE, filteredParticipations.length)} de {filteredParticipations.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Anterior
+                </Button>
+                <span className="text-sm text-slate-600">
+                  Página {currentPage} de {totalPages}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Seguinte
+                </Button>
+              </div>
+            </div>
+          )}
 
           {filteredParticipations.length === 0 && (
             <div className="text-center py-8 text-slate-500">

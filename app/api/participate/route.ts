@@ -1,8 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { eq, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { INVALID_RECEIPT_MESSAGE, isValidTelemovel, normalizeTelemovel } from '@/lib/participation-validation'
 import { participations, submissionAttempts } from '@/lib/schema'
 import { validateReceiptImage } from '@/lib/receipt-validation'
+import { buildD365CustomerPayload, createUpdateCustomer } from '@/lib/d365'
+
+const ensureParticipationSchema = async () => {
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "submission_attempts" (
+        "id" serial PRIMARY KEY NOT NULL,
+        "has_talao" boolean NOT NULL,
+        "has_foto" boolean NOT NULL,
+        "outcome" text NOT NULL,
+        "rejection_reason" text,
+        "created_at" timestamp DEFAULT now() NOT NULL
+      );
+    `)
+
+    await db.execute(sql`ALTER TABLE "participations" ADD COLUMN IF NOT EXISTS "d365_sync_status" text DEFAULT 'pending' NOT NULL;`)
+    await db.execute(sql`ALTER TABLE "participations" ADD COLUMN IF NOT EXISTS "d365_account_number" text;`)
+    await db.execute(sql`ALTER TABLE "participations" ADD COLUMN IF NOT EXISTS "d365_sync_error" text;`)
+    await db.execute(sql`ALTER TABLE "participations" ADD COLUMN IF NOT EXISTS "d365_synced_at" timestamp;`)
+  } catch (error) {
+    console.error('Failed to ensure participation schema', error)
+  }
+}
 
 export async function POST(request: NextRequest) {
   let hasTalao = false
@@ -22,6 +46,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    await ensureParticipationSchema()
     const formData = await request.formData()
 
     const talaoEntry = formData.get('talao')
@@ -114,7 +139,7 @@ export async function POST(request: NextRequest) {
     const fotoBase64 = Buffer.from(fotoBuffer).toString('base64')
 
     // Insert into database
-    await db.insert(participations).values({
+    const [createdParticipation] = await db.insert(participations).values({
       nome,
       email,
       telemovel,
@@ -125,6 +150,61 @@ export async function POST(request: NextRequest) {
       aceitePrivacidade,
       aceiteMarketing,
     })
+      .returning({
+        id: participations.id,
+        nome: participations.nome,
+        email: participations.email,
+        telemovel: participations.telemovel,
+        aceiteMarketing: participations.aceiteMarketing,
+      })
+
+    if (createdParticipation) {
+      try {
+        const d365Payload = buildD365CustomerPayload(createdParticipation)
+        const d365Result = await createUpdateCustomer(d365Payload)
+
+        if (d365Result.ok) {
+          try {
+            await db
+              .update(participations)
+              .set({
+                d365SyncStatus: 'success',
+                d365AccountNumber: d365Result.accountNumber ?? null,
+                d365SyncError: null,
+                d365SyncedAt: new Date(),
+              })
+              .where(eq(participations.id, createdParticipation.id))
+          } catch (statusUpdateError) {
+            console.error('Failed to persist D365 success status', statusUpdateError)
+          }
+        } else {
+          try {
+            await db
+              .update(participations)
+              .set({
+                d365SyncStatus: 'failed',
+                d365SyncError: d365Result.error,
+              })
+              .where(eq(participations.id, createdParticipation.id))
+          } catch (statusUpdateError) {
+            console.error('Failed to persist D365 failed status', statusUpdateError)
+          }
+        }
+      } catch (d365Error) {
+        console.error('D365 sync crashed', d365Error)
+        try {
+          await db
+            .update(participations)
+            .set({
+              d365SyncStatus: 'failed',
+              d365SyncError: d365Error instanceof Error ? `${d365Error.name}:${d365Error.message}` : 'd365_unknown_error',
+            })
+            .where(eq(participations.id, createdParticipation.id))
+        } catch (statusUpdateError) {
+          console.error('Failed to persist D365 crash status', statusUpdateError)
+        }
+      }
+    }
 
     await logSubmissionAttempt('accepted')
 
