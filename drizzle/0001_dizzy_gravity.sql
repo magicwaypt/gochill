@@ -1,1 +1,1 @@
-ALTER TABLE "participations" ADD COLUMN "status" text DEFAULT 'pending' NOT NULL;
+ALTER TABLE "participations" ADD COLUMN IF NOT EXISTS "status" text DEFAULT 'pending' NOT NULL;

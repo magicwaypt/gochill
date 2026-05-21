@@ -8,6 +8,20 @@ import { participations } from '@/lib/schema'
 
 const formatBoolean = (value: boolean) => (value ? 'Sim' : 'Não')
 
+const formatDateTimeLisbon = (value: Date | string | number) => {
+  const date = new Date(value)
+  return new Intl.DateTimeFormat('pt-PT', {
+    timeZone: 'Europe/Lisbon',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(date)
+}
+
 const formatStatus = (status: string) => {
   if (status === 'approved') {
     return 'Aprovada'
@@ -55,7 +69,7 @@ export async function GET(request: NextRequest) {
             fileType: 'foto',
           })
         : '',
-      DataCriacao: new Date(participation.createdAt).toISOString(),
+      DataCriacao: formatDateTimeLisbon(participation.createdAt),
     }))
 
     const workbook = XLSX.utils.book_new()

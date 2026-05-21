@@ -1,4 +1,4 @@
-CREATE TABLE "submission_attempts" (
+CREATE TABLE IF NOT EXISTS "submission_attempts" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"has_talao" boolean NOT NULL,
 	"has_foto" boolean NOT NULL,

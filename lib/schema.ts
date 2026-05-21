@@ -16,8 +16,8 @@ export const participations = pgTable('participations', {
   d365SyncStatus: text('d365_sync_status').default('pending').notNull(), // 'pending', 'success', 'failed'
   d365AccountNumber: text('d365_account_number'),
   d365SyncError: text('d365_sync_error'),
-  d365SyncedAt: timestamp('d365_synced_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  d365SyncedAt: timestamp('d365_synced_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
 export const submissionAttempts = pgTable('submission_attempts', {
@@ -26,5 +26,5 @@ export const submissionAttempts = pgTable('submission_attempts', {
   hasFoto: boolean('has_foto').notNull(),
   outcome: text('outcome').notNull(), // 'accepted', 'rejected'
   rejectionReason: text('rejection_reason'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })

@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Eye, Download, Users, Calendar, Award, Clock, FileSpreadsheet, StickyNote } from "lucide-react"
 
 import { getClientAdminHref } from "@/lib/admin-auth"
+import { formatLisbonDateTime, getLisbonDateKey } from "@/lib/lisbon-time"
 
 interface Participation {
   id: number
@@ -133,10 +134,10 @@ export function AdminDashboard() {
   const totalApproved = participations.filter(p => p.status === 'approved').length
   const totalRejected = participations.filter(p => p.status === 'rejected').length
   const totalPending = participations.filter(p => p.status === 'pending').length
-  const todayParticipations = participations.filter(p => {
-    const today = new Date().toDateString()
-    return new Date(p.createdAt).toDateString() === today
-  }).length
+  const todayLisbonKey = getLisbonDateKey(new Date())
+  const todayParticipations = participations.filter(
+    (p) => getLisbonDateKey(p.createdAt) === todayLisbonKey
+  ).length
 
   const openImageModal = (imageBlob: string) => {
     setSelectedImage(imageBlob)
@@ -409,7 +410,7 @@ export function AdminDashboard() {
                     <TableCell>{participation.email}</TableCell>
                     <TableCell>{participation.telemovel}</TableCell>
                     <TableCell>
-                      {new Date(participation.createdAt).toLocaleDateString('pt-PT')}
+                      {formatLisbonDateTime(participation.createdAt)}
                     </TableCell>
                     <TableCell>
                       <Badge

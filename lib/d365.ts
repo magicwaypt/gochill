@@ -163,17 +163,16 @@ export const createUpdateCustomer = async (
 	const url = new URL('api/CreateUpdateCustomer', normalizedBaseUrl).toString()
 	const timeoutMs = getTimeoutMs()
 	const controller = new AbortController()
-	const timeout = setTimeout(() => controller.abort(), timeoutMs)
+	// Increase tolerance for slow UAT environments
+	const timeout = setTimeout(() => controller.abort(), Math.max(timeoutMs, 30000))
 
 	try {
 		const response = await fetch(url, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				// Azure API Management commonly uses this header name.
-				'Ocp-Apim-Subscription-Key': subscriptionKey,
-				// Keep a fallback for gateways configured with a custom header.
-				'Subscription-Key': subscriptionKey,
+				// Custom header required by this APIM
+				'MiddlewareWS-Subscription-Key': subscriptionKey,
 			},
 			body: JSON.stringify(payload),
 			signal: controller.signal,

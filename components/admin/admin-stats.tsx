@@ -5,6 +5,7 @@ import { Award, Clock, Image as ImageIcon, Users } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getLisbonDateKey, getLisbonHour } from "@/lib/lisbon-time"
 
 interface Participation {
   id: number
@@ -91,10 +92,15 @@ export function AdminStats() {
 
   const hourlyStats = Array.from({ length: 24 }, (_, hour) => {
     const count = participations.filter(
-      (participation) => new Date(participation.createdAt).getHours() === hour
+      (participation) => getLisbonHour(participation.createdAt) === hour
     ).length
     return { hour, count }
   })
+
+  const todayLisbonKey = getLisbonDateKey(new Date())
+  const todayParticipations = participations.filter(
+    (participation) => getLisbonDateKey(participation.createdAt) === todayLisbonKey
+  ).length
 
   return (
     <div className="space-y-6">
@@ -114,14 +120,7 @@ export function AdminStats() {
           <CardContent>
             <div className="text-2xl font-bold">{totalParticipations}</div>
             <p className="text-xs text-muted-foreground">
-              +
-              {
-                participations.filter((participation) => {
-                  const today = new Date()
-                  return new Date(participation.createdAt).toDateString() === today.toDateString()
-                }).length
-              }{' '}
-              hoje
+              +{todayParticipations} hoje
             </p>
           </CardContent>
         </Card>
