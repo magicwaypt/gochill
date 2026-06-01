@@ -430,6 +430,52 @@ export default function GoChillLandingPage() {
         </div>
       </section>
 
+      {/* Winners */}
+      <section id="vencedores" className="py-12 md:py-16 bg-[#fff8f0]">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <p className="text-center text-lg md:text-2xl lg:text-3xl font-bold text-[#c73d3d] mb-3">
+              VENCEDORES DAS FOTOS MAIS CRIATIVAS
+            </p>
+            <h3 className="text-center text-2xl md:text-3xl font-bold text-[#3d2314] mb-8">
+              1ª e 2ª semana
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border-0 bg-white shadow-2xl">
+                <CardContent className="p-6 md:p-8">
+                  <p className="text-center text-xl md:text-2xl font-bold text-[#3d2314] mb-4">1ª Semana</p>
+                  <ul className="space-y-2 text-[#5a4a40] text-sm md:text-base">
+                    <li className="text-center font-semibold">DUARTE MELO</li>
+                    <li className="text-center font-semibold">EDUARDO LOPES</li>
+                    <li className="text-center font-semibold">ÁUREA MONTEIRO</li>
+                    <li className="text-center font-semibold">MARIA CAETANO</li>
+                    <li className="text-center font-semibold">SÉRGIO PINHO</li>
+                    <li className="text-center font-semibold">PAULA SILVA</li>
+                    <li className="text-center font-semibold">FERNANDO ANDRÉ</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 bg-white shadow-2xl">
+                <CardContent className="p-6 md:p-8">
+                  <p className="text-center text-xl md:text-2xl font-bold text-[#3d2314] mb-4">2ª Semana</p>
+                  <ul className="space-y-2 text-[#5a4a40] text-sm md:text-base">
+                    <li className="text-center font-semibold">ANA ALMEIDA</li>
+                    <li className="text-center font-semibold">CRISTIANA CASTANHEIRA</li>
+                    <li className="text-center font-semibold">ANA JESUS</li>
+                    <li className="text-center font-semibold">DUARTE MELO</li>
+                    <li className="text-center font-semibold">EDUARDO PEREIRA</li>
+                    <li className="text-center font-semibold">ROSA MARTINS</li>
+                    <li className="text-center font-semibold">ANA MONTEIRO</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Form Section */}
       <section
         id="form-section"
