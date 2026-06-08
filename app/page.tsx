@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
-import { ShoppingCart, Upload, Award, Camera } from "lucide-react"
+import { Award } from "lucide-react"
 
 export default function GoChillLandingPage() {
   return (
@@ -109,9 +108,6 @@ export default function GoChillLandingPage() {
           </div>
         </div>
       </section>
-
-      {/* How to Participate */}
-      <StepsSection />
 
       <section
         className="relative overflow-hidden py-12 md:py-16"
@@ -313,101 +309,5 @@ export default function GoChillLandingPage() {
         </div>
       </footer>
     </main>
-  )
-}
-
-function StepsSection() {
-  const [isVisible, setIsVisible] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.5 }
-    )
-
-    if (ref.current) {
-      observer.observe(ref.current)
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current)
-      }
-    }
-  }, [])
-
-  return (
-    <section ref={ref} className="py-12 md:py-16 bg-white md:-mt-28 lg:-mt-40 relative z-20">
-      <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center text-[#3d2314] mb-10 md:mb-12">
-          Como Participar?
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 max-w-4xl mx-auto">
-          <StepCard
-            number={1}
-            icon={<ShoppingCart className="w-6 h-6 md:w-7 md:h-7" />}
-            title="Compra"
-            description="2 Go Chill de qualquer sabor."
-            animationClass={isVisible ? "animate-scale-in animation-delay-100" : ""}
-          />
-          <StepCard
-            number={2}
-            icon={<Camera className="w-6 h-6 md:w-7 md:h-7" />}
-            title="Tira uma foto original"
-            description="A foto é tua, Go Chill é obrigatório estar, tu decides se apareces ou não."
-            animationClass={isVisible ? "animate-scale-in animation-delay-300" : ""}
-          />
-          <StepCard
-            number={3}
-            icon={<Upload className="w-6 h-6 md:w-7 md:h-7" />}
-            title="Preenche o formulário"
-            description="Faz o upload do talão de compra e da tua fotografia com Go Chill."
-            animationClass={isVisible ? "animate-scale-in animation-delay-500" : ""}
-          />
-          <StepCard
-            number={4}
-            icon={<Award className="w-6 h-6 md:w-7 md:h-7" />}
-            title="Ganha Prémios!"
-            description="Sê original e habilita-te a ganhar a viagem a Ibiza e prémios semanais."
-            animationClass={isVisible ? "animate-scale-in animation-delay-700" : ""}
-          />
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function StepCard({
-  number,
-  icon,
-  title,
-  description,
-  animationClass = ""
-}: {
-  number: number
-  icon: React.ReactNode
-  title: string
-  description: string
-  animationClass?: string
-}) {
-  return (
-    <div className={animationClass ? `flex flex-col items-center text-center ${animationClass}` : "flex flex-col items-center text-center step-card-default"}>
-      <div className="relative mb-3 md:mb-4">
-        <div className="w-14 h-14 md:w-16 md:h-16 bg-[#f47920] rounded-full flex items-center justify-center text-white shadow-lg">
-          {icon}
-        </div>
-        <span className="absolute -top-1 -right-1 w-6 h-6 md:w-7 md:h-7 bg-[#3d2314] text-white rounded-full flex items-center justify-center text-xs md:text-sm font-bold shadow">
-          {number}
-        </span>
-      </div>
-      <h3 className="font-bold text-[#3d2314] text-sm md:text-base mb-1">{title}</h3>
-      <p className="text-xs md:text-sm text-[#5a4a40]">{description}</p>
-    </div>
   )
 }

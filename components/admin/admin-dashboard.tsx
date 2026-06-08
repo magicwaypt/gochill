@@ -228,12 +228,16 @@ export function AdminDashboard() {
     link.click()
   }
 
-  const syncAllToD365 = async () => {
+  const syncAllToD365 = async (forceAll = false) => {
     setIsBulkSyncingD365(true)
 
     try {
       const response = await fetch('/api/admin/participations/sync-d365', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ forceAll }),
       })
 
       const payload = await response.json().catch(() => null)
@@ -246,7 +250,7 @@ export function AdminDashboard() {
       await fetchParticipations()
 
       alert(
-        `Sync D365 concluído: ${payload?.succeeded ?? 0} sucesso, ${payload?.failed ?? 0} falhas (total ${payload?.attempted ?? 0}).`
+        `${forceAll ? 'Ressincronização total' : 'Sync D365'} concluída: ${payload?.succeeded ?? 0} sucesso, ${payload?.failed ?? 0} falhas (total ${payload?.attempted ?? 0}).`
       )
     } catch (error) {
       console.error('Error bulk syncing participations to D365:', error)
@@ -350,10 +354,18 @@ export function AdminDashboard() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={syncAllToD365}
+                onClick={() => syncAllToD365(false)}
                 disabled={isBulkSyncingD365}
               >
                 {isBulkSyncingD365 ? 'A sincronizar...' : 'Sincronizar todos (D365)'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => syncAllToD365(true)}
+                disabled={isBulkSyncingD365}
+              >
+                {isBulkSyncingD365 ? 'A sincronizar...' : 'Ressincronizar tudo (inclui sucessos)'}
               </Button>
               <Button type="button" onClick={exportParticipations} className="sm:self-start">
                 <FileSpreadsheet className="mr-2 h-4 w-4" />

@@ -7,11 +7,16 @@ import { participations } from '@/lib/schema'
 
 export async function POST(_request: NextRequest) {
   try {
+    const requestBody = await _request.json().catch(() => null)
+    const forceAll = requestBody?.forceAll === true
+
     const candidates = await db.query.participations.findMany({
-      where: or(
-        eq(participations.d365SyncStatus, 'pending'),
-        eq(participations.d365SyncStatus, 'failed')
-      ),
+      where: forceAll
+        ? undefined
+        : or(
+            eq(participations.d365SyncStatus, 'pending'),
+            eq(participations.d365SyncStatus, 'failed')
+          ),
       columns: {
         id: true,
         nome: true,
@@ -81,6 +86,7 @@ export async function POST(_request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      forceAll,
       totalCandidates: candidates.length,
       attempted,
       succeeded,
@@ -94,4 +100,3 @@ export async function POST(_request: NextRequest) {
     )
   }
 }
-

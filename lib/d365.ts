@@ -9,17 +9,22 @@ type ParticipationForD365 = {
 }
 
 export type D365CustomerPayload = {
-	Operation: '0'
+	Operation: 0
 	SiteCustomer: {
 		CountryCode: string
-		StoreCode: string
-		Language: string
-		Username: string
-		Name: string
+		Street: string
+		PostalCode: string
 		MainPhone: string
-		SubscribeNewsletter: boolean
-		Source: string
-		Passatempos: Array<{
+		OtherPhone: string
+		BirthDate: string
+		Username: string
+		StoreCode: string
+		Source: number
+		VATCode: string
+		SubscribeNewsletter: 'true' | 'false'
+		Language: string
+		Name: string
+		Hobbies: Array<{
 			Name: string
 			CodigoPassatempo: string
 		}>
@@ -67,6 +72,18 @@ const getRequiredEnv = (key: string) => {
 	return value
 }
 
+const getEnvOrDefault = (key: string, defaultValue: string) => {
+	const value = process.env[key]?.trim()
+	return value || defaultValue
+}
+
+const getNumericEnvOrDefault = (key: string, defaultValue: number) => {
+	const raw = process.env[key]?.trim()
+	if (!raw) return defaultValue
+	const value = Number(raw)
+	return Number.isFinite(value) ? value : defaultValue
+}
+
 const getTimeoutMs = () => {
 	const raw = process.env.D365_TIMEOUT_MS?.trim()
 	if (!raw) return 10_000
@@ -89,28 +106,33 @@ const redact = (value: unknown): unknown => {
 }
 
 export const buildD365CustomerPayload = (participation: ParticipationForD365): D365CustomerPayload => {
-	const storeCode = getRequiredEnv('D365_STORE_CODE')
-	const language = getRequiredEnv('D365_LANGUAGE')
-	const countryCode = getRequiredEnv('D365_COUNTRY_CODE')
-	const source = getRequiredEnv('D365_SOURCE')
-	const contestName = getRequiredEnv('D365_CONTEST_NAME')
-	const contestCode = getRequiredEnv('D365_CONTEST_CODE')
+	const storeCode = getEnvOrDefault('D365_STORE_CODE', 'SHOP1')
+	const language = getEnvOrDefault('D365_LANGUAGE', 'PT')
+	const countryCode = getEnvOrDefault('D365_COUNTRY_CODE', 'PT')
+	const source = getNumericEnvOrDefault('D365_SOURCE', 803750014)
+	const hobbyName = getEnvOrDefault('D365_CONTEST_NAME', 'Fotografia')
+	const hobbyCode = getEnvOrDefault('D365_CONTEST_CODE', 'HOBBY001')
 
 	return {
-		Operation: '0',
+		Operation: 0,
 		SiteCustomer: {
 			CountryCode: countryCode,
-			StoreCode: storeCode,
-			Language: language,
-			Username: participation.email,
-			Name: participation.nome,
+			Street: '',
+			PostalCode: '',
 			MainPhone: participation.telemovel,
-			SubscribeNewsletter: participation.aceiteMarketing,
+			OtherPhone: '',
+			BirthDate: '',
+			Username: participation.email,
+			StoreCode: storeCode,
 			Source: source,
-			Passatempos: [
+			VATCode: '',
+			SubscribeNewsletter: participation.aceiteMarketing ? 'true' : 'false',
+			Language: language,
+			Name: participation.nome,
+			Hobbies: [
 				{
-					Name: contestName,
-					CodigoPassatempo: contestCode,
+					Name: hobbyName,
+					CodigoPassatempo: hobbyCode,
 				},
 			],
 		},
@@ -195,8 +217,8 @@ export const createUpdateCustomer = async (
 					errorCode: errorDetails?.errorCode,
 					errorDescription: errorDetails?.errorDescription,
 					body: normalizeErrorSummary(rawBody),
-					contestName: payload.SiteCustomer.Passatempos?.[0]?.Name,
-					contestCode: payload.SiteCustomer.Passatempos?.[0]?.CodigoPassatempo,
+					hobbyName: payload.SiteCustomer.Hobbies?.[0]?.Name,
+					hobbyCode: payload.SiteCustomer.Hobbies?.[0]?.CodigoPassatempo,
 				})
 			)
 
@@ -223,8 +245,8 @@ export const createUpdateCustomer = async (
 			sanitizeD365LogContext({
 				endpoint: url,
 				error: normalizeErrorSummary(error),
-				contestName: payload.SiteCustomer.Passatempos?.[0]?.Name,
-				contestCode: payload.SiteCustomer.Passatempos?.[0]?.CodigoPassatempo,
+				hobbyName: payload.SiteCustomer.Hobbies?.[0]?.Name,
+				hobbyCode: payload.SiteCustomer.Hobbies?.[0]?.CodigoPassatempo,
 			})
 		)
 
