@@ -197,7 +197,7 @@ export default function GoChillLandingPage() {
             <p className="text-center text-lg md:text-2xl lg:text-3xl font-bold text-[#c73d3d] mb-3">
               VENCEDORES DAS FOTOS MAIS CRIATIVAS
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               <Card className="border-0 bg-white shadow-2xl">
                 <CardContent className="p-6 md:p-8">
                   <p className="text-center text-xl md:text-2xl font-bold text-[#3d2314] mb-4">1ª Semana</p>
@@ -239,6 +239,21 @@ export default function GoChillLandingPage() {
                     <li className="text-center font-semibold">ÁUREA MONTEIRO</li>
                     <li className="text-center font-semibold">ALEXANDRE SOUSA</li>
                     <li className="text-center font-semibold">BENEDITA CORDEIRO</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 bg-white shadow-2xl">
+                <CardContent className="p-6 md:p-8">
+                  <p className="text-center text-xl md:text-2xl font-bold text-[#3d2314] mb-4">4ª Semana</p>
+                  <ul className="space-y-2 text-[#5a4a40] text-sm md:text-base">
+                    <li className="text-center font-semibold">ANDREIA AMARO</li>
+                    <li className="text-center font-semibold">ANDREIA SOFIA</li>
+                    <li className="text-center font-semibold">MARIA CAETANO</li>
+                    <li className="text-center font-semibold">ISALINA ANTUNES</li>
+                    <li className="text-center font-semibold">CLÁUDIA SILVA</li>
+                    <li className="text-center font-semibold">MARIANA LOPES</li>
+                    <li className="text-center font-semibold">CRISTINA PITA</li>
                   </ul>
                 </CardContent>
               </Card>
