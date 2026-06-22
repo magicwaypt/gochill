@@ -197,7 +197,7 @@ export default function GoChillLandingPage() {
             <p className="text-center text-lg md:text-2xl lg:text-3xl font-bold text-[#c73d3d] mb-3">
               VENCEDORES DAS FOTOS MAIS CRIATIVAS
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               <Card className="border-0 bg-white shadow-2xl">
                 <CardContent className="p-6 md:p-8">
                   <p className="text-center text-xl md:text-2xl font-bold text-[#3d2314] mb-4">1ª Semana</p>
@@ -255,6 +255,31 @@ export default function GoChillLandingPage() {
                     <li className="text-center font-semibold">MARIANA LOPES</li>
                     <li className="text-center font-semibold">CRISTINA PITA</li>
                   </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 bg-white shadow-2xl">
+                <CardContent className="p-6 md:p-8">
+                  <p className="text-center text-xl md:text-2xl font-bold text-[#3d2314] mb-4">5ª Semana</p>
+                  <ul className="space-y-2 text-[#5a4a40] text-sm md:text-base">
+                    <li className="text-center font-semibold">CARINA SANTO</li>
+                    <li className="text-center font-semibold">JOANA CONCEIÇÃO</li>
+                    <li className="text-center font-semibold">CATARINA OLIVEIRA</li>
+                    <li className="text-center font-semibold">MARIA BRAGA</li>
+                    <li className="text-center font-semibold">MANUEL VAZ</li>
+                    <li className="text-center font-semibold">GONÇALO ALVES</li>
+                    <li className="text-center font-semibold">CATARINA OLIVEIRA</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 bg-[#fff0df] shadow-2xl">
+                <CardContent className="flex min-h-full flex-col items-center justify-center p-6 text-center md:p-8">
+                  <p className="text-xl font-bold text-[#c73d3d] md:text-2xl">Prémio Final</p>
+                  <p className="mt-4 text-2xl font-bold text-[#3d2314] md:text-3xl">Em Breve</p>
+                  <p className="mt-4 max-w-xs text-sm text-[#5a4a40] md:text-base">
+                    O vencedor do prémio final será anunciado em breve.
+                  </p>
                 </CardContent>
               </Card>
             </div>
