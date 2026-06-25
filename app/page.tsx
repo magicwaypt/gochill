@@ -197,8 +197,8 @@ export default function GoChillLandingPage() {
             <p className="text-center text-lg md:text-2xl lg:text-3xl font-bold text-[#c73d3d] mb-3">
               VENCEDORES DAS FOTOS MAIS CRIATIVAS
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              <Card className="border-0 bg-white shadow-2xl">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-6">
+              <Card className="border-0 bg-white shadow-2xl xl:col-span-2">
                 <CardContent className="p-6 md:p-8">
                   <p className="text-center text-xl md:text-2xl font-bold text-[#3d2314] mb-4">1ª Semana</p>
                   <ul className="space-y-2 text-[#5a4a40] text-sm md:text-base">
@@ -213,7 +213,7 @@ export default function GoChillLandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 bg-white shadow-2xl">
+              <Card className="border-0 bg-white shadow-2xl xl:col-span-2">
                 <CardContent className="p-6 md:p-8">
                   <p className="text-center text-xl md:text-2xl font-bold text-[#3d2314] mb-4">2ª Semana</p>
                   <ul className="space-y-2 text-[#5a4a40] text-sm md:text-base">
@@ -228,7 +228,7 @@ export default function GoChillLandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 bg-white shadow-2xl">
+              <Card className="border-0 bg-white shadow-2xl xl:col-span-2">
                 <CardContent className="p-6 md:p-8">
                   <p className="text-center text-xl md:text-2xl font-bold text-[#3d2314] mb-4">3ª Semana</p>
                   <ul className="space-y-2 text-[#5a4a40] text-sm md:text-base">
@@ -243,7 +243,7 @@ export default function GoChillLandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 bg-white shadow-2xl">
+              <Card className="border-0 bg-white shadow-2xl xl:col-span-2 xl:col-start-2">
                 <CardContent className="p-6 md:p-8">
                   <p className="text-center text-xl md:text-2xl font-bold text-[#3d2314] mb-4">4ª Semana</p>
                   <ul className="space-y-2 text-[#5a4a40] text-sm md:text-base">
@@ -258,7 +258,7 @@ export default function GoChillLandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 bg-white shadow-2xl">
+              <Card className="border-0 bg-white shadow-2xl xl:col-span-2 xl:col-start-4">
                 <CardContent className="p-6 md:p-8">
                   <p className="text-center text-xl md:text-2xl font-bold text-[#3d2314] mb-4">5ª Semana</p>
                   <ul className="space-y-2 text-[#5a4a40] text-sm md:text-base">
@@ -273,13 +273,37 @@ export default function GoChillLandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 bg-[#fff0df] shadow-2xl">
-                <CardContent className="flex min-h-full flex-col items-center justify-center p-6 text-center md:p-8">
-                  <p className="text-xl font-bold text-[#c73d3d] md:text-2xl">Prémio Final</p>
-                  <p className="mt-4 text-2xl font-bold text-[#3d2314] md:text-3xl">Em Breve</p>
-                  <p className="mt-4 max-w-xs text-sm text-[#5a4a40] md:text-base">
-                    O vencedor do prémio final será anunciado em breve.
-                  </p>
+              <Card className="relative overflow-hidden border-0 bg-[#fff0df] shadow-2xl md:col-span-2 xl:col-span-6">
+                <CardContent className="relative p-6 md:p-8 lg:p-10">
+                  <div className="absolute inset-x-0 top-0 h-2 bg-[#c73d3d]" />
+                  <div className="grid items-center gap-8 pt-3 md:grid-cols-[minmax(0,1fr)_220px] lg:grid-cols-[minmax(0,1fr)_280px]">
+                    <div className="text-center md:text-left">
+                      <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#c73d3d] shadow-sm">
+                        <Award className="h-4 w-4" />
+                        Grande vencedor
+                      </div>
+                      <p className="mt-5 text-xl font-bold text-[#c73d3d] md:text-2xl">Prémio Final</p>
+                      <p className="mt-3 max-w-xl text-3xl font-bold leading-tight text-[#3d2314] md:text-4xl">
+                        Já temos o grande vencedor
+                      </p>
+                      <p className="mt-4 text-4xl font-extrabold leading-none text-[#3d2314] md:text-6xl">
+                        DUARTE MELO
+                      </p>
+                      <p className="mt-4 max-w-xl text-sm text-[#5a4a40] md:text-base">
+                        A fotografia vencedora leva uma viagem a Ibiza para 4 amigos.
+                      </p>
+                    </div>
+
+                    <div className="flex justify-center md:justify-end">
+                      <Image
+                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/aviao-9AUjX3fXM5ml6zYSzxFgQg60ldfiRQ.png"
+                        alt="Avião do prémio final"
+                        width={320}
+                        height={160}
+                        className="w-40 drop-shadow-2xl animate-float-plane md:w-52 lg:w-64"
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
